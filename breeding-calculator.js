@@ -825,6 +825,238 @@ function getRarityClass(score) {
     return 'common';
 }
 
+// Custom Scroll Generator
+// Categorize genes by rarity for custom scroll generation
+const RARITY_GENES = {
+    legendary: {
+        coatColors: [
+            // Triple dilution combinations
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'Tpprl', 'erer'] },  // Tyrian Pearl Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'Tpprl', 'erer'] }, // Phthalo Pearl Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'Tpprl', 'erer'] }, // Ochre Pearl Ether
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'TpprlCh'] }, // Tyrian Pearl Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'TpprlCh'] }, // Phthalo Pearl Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'TpprlCh'] }, // Ochre Pearl Champagne
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'Crprler'] }, // Ombre Cream Pearl Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'Crprler'] }, // Classic Cream Pearl Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'Crprler'] }, // Cold Cream Pearl Ether
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'CrprlCh'] }, // Amber Cream Pearl Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'CrprlCh'] }, // Classic Cream Pearl Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'CrprlCh'] }, // Gold Cream Pearl Champagne
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'TpCrer'] }, // Madder Cream Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'TpCrer'] }, // Woad Cream Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'TpCrer'] }, // Weld Cream Ether
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'TpCrCh'] }, // Madder Cream Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'TpCrCh'] }, // Woad Cream Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'TpCrCh'] } // Weld Cream Champagne
+        ],
+        markings: ['fefe', 'nOs'],
+        modifiers: ['nPr', 'sfsf']
+    },
+    epic: {
+        coatColors: [
+            // Double dilution combinations
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'Tpprl'] }, // Tyrian Pearl
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'Tpprl'] }, // Phthalo Pearl
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'Tpprl'] }, // Ochre Pearl
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'prler'] }, // Bay Pearl Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'prler'] }, // Black Pearl Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'prler'] }, // Gold Pearl Ether
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'Tper'] }, // Madder Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'Tper'] }, // Woad Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'Tper'] }, // Weld Ether
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'TpCr'] }, // Madder Buckskin
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'TpCr'] }, // Woad Smoky Black
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'TpCr'] }, // Weld Palomino
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'Crprl'] }, // Bay Cream Pearl
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'Crprl'] }, // Black Cream Pearl
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'Crprl'] }, // Gold Cream Pearl
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'prlCh'] }, // Bay Pearl Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'prlCh'] }, // Black Pearl Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'prlCh'] }, // Gold Pearl Champagne
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'CrCh'] }, // Bay Cream Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'CrCh'] }, // Black Cream Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'CrCh'] }, // Gold Cream Champagne
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'Crer'] }, // Bay Cream Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'Crer'] }, // Black Cream Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'Crer'] }, // Gold Cream Ether
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'TpCh'] }, // Madder Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'TpCh'] }, // Woad Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'TpCh'] } // Weld Champagne
+        ],
+        markings: ['nSh', 'nHq', 'LpLp patnpatn'],
+        modifiers: ['nOp']
+    },
+    rare: {
+        coatColors: [
+            // Homozygous dilutions
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'prlprl'] }, // Bay Pearl
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'prlprl'] }, // Black Pearl
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'prlprl'] }, // Gold Pearl
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'erer'] }, // Bay Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'erer'] }, // Black Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'erer'] } // Chestnut Ether
+        ],
+        markings: ['nFl'],
+        modifiers: ['nTd', 'nGl']
+    },
+    uncommon: {
+        coatColors: [
+            // Single dilutions
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'nCr'] }, // Buckskin
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'nCr'] }, // Smoky Black
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'nCr'] }, // Palomino
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'CrCr'] }, // Perlino
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'CrCr'] }, // Smoky Cream
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'CrCr'] }, // Cremello
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'nTp'] }, // Madder
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'nTp'] }, // Woad
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'nTp'] }, // Weld
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'nprl'] }, // Bay Pearl (het)
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'nprl'] }, // Black Pearl (het)
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'nprl'] }, // Gold Pearl (het)
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'nCh'] }, // Amber Champagne
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'nCh'] }, // Classic Champagne
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'nCh'] }, // Gold Champagne
+            { baseCoat: 'Bay', genes: ['Ee', 'AA', 'ner'] }, // Ombre Ether
+            { baseCoat: 'Black', genes: ['Ee', 'aa', 'ner'] }, // Classic Ether
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA', 'ner'] } // Cold Ether
+        ],
+        markings: ['nT', 'nO', 'nSpl', 'nR', 'nSb', 'Lp patn', 'nB', 'nSf', 'nfe'],
+        modifiers: ['nD', 'nP', 'nSty', 'nG', 'nf', 'nZ', 'nLu', 'nsp', 'nV']
+    },
+    common: {
+        coatColors: [
+            { baseCoat: 'Bay', genes: ['Ee', 'AA'] },
+            { baseCoat: 'Black', genes: ['Ee', 'aa'] },
+            { baseCoat: 'Chestnut', genes: ['ee', 'AA'] }
+        ],
+        markings: ['nGi', 'nCo', 'nBl', 'nW', 'nRb', 'nCu', 'nCw'],
+        modifiers: []
+    }
+};
+
+const TEMPERAMENTS = ['Choleric', 'Melancholic', 'Phlegmatic', 'Sanguine'];
+const VARIANTS = ['Standard', 'Heraldic', 'Puck', 'Cavedweller'];
+const ALL_ANOMALIES = [
+    'Bend-or Spots', 'Birdcatcher Spots', 'Brindle', 'Chimera',
+    'Geode', 'Ore', 'Stained Glass', 'Kintsugi', 'Swarf', 'Vitiligo',
+    'Oracle', 'Signet', 'Pennant', 'Pastiche', 'Fresco', 'Lantern'
+];
+
+function getRandomElement(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+function generateCustomScroll(rarity) {
+    const rarityKey = rarity.toLowerCase();
+    const rarityData = RARITY_GENES[rarityKey];
+
+    if (!rarityData) {
+        alert('Invalid rarity level!');
+        return null;
+    }
+
+    // Build list of available coat colors (this rarity level)
+    let availableCoatColors = [...rarityData.coatColors];
+
+    // Build list of available markings/modifiers (this rarity and lower)
+    const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    const rarityIndex = rarityOrder.indexOf(rarityKey);
+
+    let availableMarkings = [];
+    let availableModifiers = [];
+
+    for (let i = 0; i <= rarityIndex; i++) {
+        const currentRarity = rarityOrder[i];
+        availableMarkings = availableMarkings.concat(RARITY_GENES[currentRarity].markings);
+        availableModifiers = availableModifiers.concat(RARITY_GENES[currentRarity].modifiers);
+    }
+
+    // Generate the horse
+    const genes = [];
+
+    // 1. Select random coat color
+    const selectedCoat = getRandomElement(availableCoatColors);
+    genes.push(...selectedCoat.genes);
+
+    // 2. Select 1 marking, modifier, or carrier (50/50 split between marking and modifier)
+    const allTraits = [...availableMarkings, ...availableModifiers];
+    if (allTraits.length > 0) {
+        const selectedTrait = getRandomElement(allTraits);
+        genes.push(selectedTrait);
+    }
+
+    // 3. 10% chance of random anomaly
+    const anomalies = [];
+    if (Math.random() < 0.10) {
+        anomalies.push(getRandomElement(ALL_ANOMALIES));
+    }
+
+    // 4. 5% chance of random variant (non-Standard)
+    let variant = 'Standard';
+    if (Math.random() < 0.05) {
+        const nonStandardVariants = VARIANTS.filter(v => v !== 'Standard');
+        variant = getRandomElement(nonStandardVariants);
+    }
+
+    // 5. Random temperament
+    const temperament = getRandomElement(TEMPERAMENTS);
+
+    // Build genotype string
+    let genotype = genes.join(' ');
+    if (anomalies.length > 0) {
+        genotype += ' + ' + anomalies.join(', ');
+    }
+
+    return {
+        genotype: genotype,
+        temperament: temperament,
+        variant: variant,
+        rarity: rarity
+    };
+}
+
+function displayCustomScrollResult() {
+    const raritySelect = document.getElementById('scrollRarity');
+    const rarity = raritySelect.value;
+
+    const result = generateCustomScroll(rarity);
+    if (!result) return;
+
+    const resultDiv = document.getElementById('scrollResult');
+    const phenotype = genotypeToPhenotype(result.genotype);
+    const rarityScore = calculateRarity(result.genotype);
+    const rarityClass = getRarityClass(rarityScore);
+
+    resultDiv.innerHTML = `
+        <div class="scroll-result-card">
+            <h3>Your ${rarity} Custom Scroll Creation</h3>
+            <div class="result-section">
+                <h4>Phenotype:</h4>
+                <p class="phenotype">${phenotype}</p>
+            </div>
+            <div class="result-section">
+                <h4>Genotype:</h4>
+                <p class="geno">${result.genotype}</p>
+            </div>
+            <div class="result-section">
+                <h4>Stats:</h4>
+                <p><strong>Temperament:</strong> ${result.temperament}</p>
+                <p><strong>Variant:</strong> ${result.variant}</p>
+                <span class="rarity-badge ${rarityClass}">Rarity: ${rarityScore}</span>
+            </div>
+            <button onclick="displayCustomScrollResult()"
+                    style="margin-top: 15px; padding: 10px 20px; background: #543954; color: #d4af37; border: 2px solid #d4af37; cursor: pointer; font-weight: 600;">
+                Generate Another
+            </button>
+        </div>
+    `;
+
+    resultDiv.style.display = 'block';
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 // Breeding Search Functionality
 function searchBreeding() {
     const query = document.getElementById('breedingQuery').value.toLowerCase().trim();
