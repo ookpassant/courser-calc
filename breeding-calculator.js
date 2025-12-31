@@ -1287,10 +1287,12 @@ function canProduceCompoundDilution(p1Geno, p2Geno, dilution1, dilution2) {
 }
 
 function calculateMatchScore(parent1, parent2, targetTraits) {
-    let score = 0;
     const p1Geno = parent1.genotype.toLowerCase();
     const p2Geno = parent2.genotype.toLowerCase();
     const combinedGeno = (p1Geno + ' ' + p2Geno);
+
+    // Track which traits are possible
+    let traitsScores = [];
 
     targetTraits.forEach(trait => {
         const traitLower = trait.toLowerCase();
@@ -1304,12 +1306,12 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
             const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
             const canMakeErer = p1HasEther && p2HasEther;
-            if (hasCreamPearl && canMakeErer) score += 150;
+            if (hasCreamPearl && canMakeErer) traitsScores.push(150);
         } else if (traitLower.includes('cream pearl champagne')) {
             // Need Crprl + Ch
             const hasCreamPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl');
             const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
-            if (hasCreamPearl && hasChampagne) score += 150;
+            if (hasCreamPearl && hasChampagne) traitsScores.push(150);
         } else if (traitLower.includes('tapestry pearl ether') || traitLower === 'tyrian pearl ether' ||
                    traitLower === 'phthalo pearl ether' || traitLower === 'ochre pearl ether') {
             // Need Tpprl + erer (homozygous ether requires BOTH parents have ether)
@@ -1317,12 +1319,12 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
             const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
             const canMakeErer = p1HasEther && p2HasEther;
-            if (hasTapestryPearl && canMakeErer) score += 150;
+            if (hasTapestryPearl && canMakeErer) traitsScores.push(150);
         } else if (traitLower.includes('tapestry pearl champagne')) {
             // Need Tpprl + Ch
             const hasTapestryPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl');
             const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
-            if (hasTapestryPearl && hasChampagne) score += 150;
+            if (hasTapestryPearl && hasChampagne) traitsScores.push(150);
         } else if (traitLower.includes('tapestry cream ether') || traitLower === 'madder cream ether' ||
                    traitLower === 'woad cream ether' || traitLower === 'weld cream ether') {
             // Need TpCr + erer (homozygous ether requires BOTH parents have ether)
@@ -1330,74 +1332,106 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
             const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
             const canMakeErer = p1HasEther && p2HasEther;
-            if (hasTapestryCream && canMakeErer) score += 150;
+            if (hasTapestryCream && canMakeErer) traitsScores.push(150);
         } else if (traitLower.includes('tapestry cream champagne') || traitLower === 'madder cream champagne' ||
                    traitLower === 'woad cream champagne' || traitLower === 'weld cream champagne') {
             // Need TpCr + Ch
             const hasTapestryCream = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'cr');
             const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
-            if (hasTapestryCream && hasChampagne) score += 150;
+            if (hasTapestryCream && hasChampagne) traitsScores.push(150);
         } else if (traitLower.includes('pearl ether') && !traitLower.includes('cream') && !traitLower.includes('tapestry')) {
             // Need prlprl + erer (homozygous pearl and ether)
             const p1HasPearl = p1Geno.includes('prl');
             const p2HasPearl = p2Geno.includes('prl');
             const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
             const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
-            if (p1HasPearl && p2HasPearl && p1HasEther && p2HasEther) score += 120;
+            if (p1HasPearl && p2HasPearl && p1HasEther && p2HasEther) traitsScores.push(120);
         } else if (traitLower.includes('cream pearl') && !traitLower.includes('ether') && !traitLower.includes('champagne')) {
             // Need Crprl (cream pearl compound)
-            if (canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl')) score += 100;
+            if (canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl')) traitsScores.push(100);
         } else if (traitLower.includes('tapestry pearl') && !traitLower.includes('ether') && !traitLower.includes('champagne')) {
             // Need Tpprl (tapestry pearl compound)
-            if (canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl')) score += 100;
+            if (canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl')) traitsScores.push(100);
         } else if (traitLower.includes('woad')) {
-            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) traitsScores.push(100);
         } else if (traitLower.includes('madder')) {
-            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) traitsScores.push(100);
         } else if (traitLower.includes('weld')) {
-            if (combinedGeno.includes('tp') && combinedGeno.includes('ee')) score += 100;
+            if (combinedGeno.includes('tp') && combinedGeno.includes('ee')) traitsScores.push(100);
         } else if (traitLower.includes('buckskin')) {
-            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) traitsScores.push(100);
         } else if (traitLower.includes('smoky black')) {
-            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) traitsScores.push(100);
         } else if (traitLower.includes('palomino')) {
-            if (combinedGeno.includes('cr') && combinedGeno.includes('ee')) score += 100;
+            if (combinedGeno.includes('cr') && combinedGeno.includes('ee')) traitsScores.push(100);
         } else if (traitLower.includes('perlino')) {
-            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) traitsScores.push(100);
         } else if (traitLower.includes('smoky cream')) {
-            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) traitsScores.push(100);
         } else if (traitLower.includes('cremello')) {
-            if (combinedGeno.includes('crcr') && combinedGeno.includes('ee')) score += 100;
+            if (combinedGeno.includes('crcr') && combinedGeno.includes('ee')) traitsScores.push(100);
         } else if (traitLower.includes('amber champagne')) {
-            if (combinedGeno.includes('ch') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+            if (combinedGeno.includes('ch') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) traitsScores.push(100);
         } else if (traitLower.includes('fewspot')) {
-            if (combinedGeno.includes('lplp') && combinedGeno.includes('patnpatn')) score += 100;
+            // Need LpLp patnpatn - BOTH parents must have Lp AND patn
+            const p1HasLp = p1Geno.includes('lp');
+            const p2HasLp = p2Geno.includes('lp');
+            const p1HasPatn = p1Geno.includes('patn');
+            const p2HasPatn = p2Geno.includes('patn');
+            if (p1HasLp && p2HasLp && p1HasPatn && p2HasPatn) traitsScores.push(100);
         } else if (traitLower.includes('snowcap')) {
-            if (combinedGeno.includes('lplp') && combinedGeno.includes('patn') && !combinedGeno.includes('patnpatn')) score += 100;
+            // Need LpLp npatn - BOTH parents must have Lp, at least one has patn, but not both homozygous
+            const p1HasLp = p1Geno.includes('lp');
+            const p2HasLp = p2Geno.includes('lp');
+            const p1HasPatn = p1Geno.includes('patn');
+            const p2HasPatn = p2Geno.includes('patn');
+            if (p1HasLp && p2HasLp && (p1HasPatn || p2HasPatn)) traitsScores.push(100);
         } else if (traitLower.includes('varnish roan')) {
-            if (combinedGeno.includes('lplp') && !combinedGeno.includes('patn')) score += 100;
+            // Need LpLp npatn - BOTH parents must have Lp, neither has patn
+            const p1HasLp = p1Geno.includes('lp');
+            const p2HasLp = p2Geno.includes('lp');
+            if (p1HasLp && p2HasLp && !combinedGeno.includes('patn')) traitsScores.push(100);
         } else if (traitLower.includes('leopard')) {
-            if (combinedGeno.includes('nlp') && combinedGeno.includes('patnpatn')) score += 100;
+            // Need nLp patnpatn - at least one parent has Lp, BOTH have patn
+            const hasLp = combinedGeno.includes('lp');
+            const p1HasPatn = p1Geno.includes('patn');
+            const p2HasPatn = p2Geno.includes('patn');
+            if (hasLp && p1HasPatn && p2HasPatn) traitsScores.push(100);
         } else if (traitLower.includes('blanket')) {
-            if (combinedGeno.includes('nlp') && combinedGeno.includes('patn') && !combinedGeno.includes('patnpatn')) score += 100;
+            // Need nLp npatn - at least one parent has Lp, at least one has patn
+            const hasLp = combinedGeno.includes('lp');
+            const hasPatn = combinedGeno.includes('patn');
+            if (hasLp && hasPatn) traitsScores.push(100);
         } else if (traitLower.includes('snowflake')) {
-            if (combinedGeno.includes('nlp') && !combinedGeno.includes('patn')) score += 100;
+            // Need nLp npatn - at least one parent has Lp, neither has patn
+            const hasLp = combinedGeno.includes('lp');
+            if (hasLp && !combinedGeno.includes('patn')) traitsScores.push(100);
         } else if (traitLower.includes('starfield')) {
-            if (combinedGeno.includes('sfsf')) score += 100;
+            // Need sfsf - BOTH parents must have sf
+            const p1HasSf = p1Geno.includes('sfsf') || p1Geno.includes('nsf');
+            const p2HasSf = p2Geno.includes('sfsf') || p2Geno.includes('nsf');
+            if (p1HasSf && p2HasSf) traitsScores.push(100);
         } else if (traitLower.includes('ether')) {
-            if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) score += 80;
+            if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) traitsScores.push(80);
         } else if (traitLower.includes('filigree')) {
-            if (combinedGeno.includes('fefe') || combinedGeno.includes('nfe')) score += 100;
+            // Need fefe - BOTH parents must have fe
+            const p1HasFe = p1Geno.includes('fefe') || p1Geno.includes('nfe');
+            const p2HasFe = p2Geno.includes('fefe') || p2Geno.includes('nfe');
+            if (p1HasFe && p2HasFe) traitsScores.push(100);
         } else if (traitLower.includes('ossuary')) {
-            if (combinedGeno.includes('nos')) score += 100;
+            if (combinedGeno.includes('nos')) traitsScores.push(100);
         } else if (traitLower.includes('shroud')) {
-            if (combinedGeno.includes('nsh')) score += 80;
+            if (combinedGeno.includes('nsh')) traitsScores.push(80);
         } else if (combinedGeno.includes(traitLower.substring(0, 3))) {
-            score += 50;
+            traitsScores.push(50);
         }
     });
 
-    return score;
+    // Only return total score if ALL traits can be produced in a single foal
+    if (traitsScores.length === targetTraits.length) {
+        return traitsScores.reduce((sum, s) => sum + s, 0);
+    }
+    return 0; // Can't make all traits in one foal
 }
 
 function estimateProbability(parent1, parent2, targetTraits) {
