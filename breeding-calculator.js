@@ -1242,16 +1242,87 @@ function findBreedingMatches(targetTraits) {
     return matches;
 }
 
+function canProduceCompoundDilution(p1Geno, p2Geno, dilution1, dilution2) {
+    // Check if one parent has dilution1 and the other has dilution2
+    // OR if one parent already has the compound
+    const compound = dilution1 + dilution2;
+    const reverseCompound = dilution2 + dilution1;
+
+    // Check if either parent already has the compound
+    if (p1Geno.includes(compound) || p2Geno.includes(compound) ||
+        p1Geno.includes(reverseCompound) || p2Geno.includes(reverseCompound)) {
+        return true;
+    }
+
+    // Check if they can combine to make it
+    const p1Has1 = p1Geno.includes('n' + dilution1) || p1Geno.includes(dilution1 + dilution1);
+    const p1Has2 = p1Geno.includes('n' + dilution2) || p1Geno.includes(dilution2 + dilution2);
+    const p2Has1 = p2Geno.includes('n' + dilution1) || p2Geno.includes(dilution1 + dilution1);
+    const p2Has2 = p2Geno.includes('n' + dilution2) || p2Geno.includes(dilution2 + dilution2);
+
+    // One parent has dilution1, other has dilution2
+    return (p1Has1 && p2Has2) || (p1Has2 && p2Has1);
+}
+
 function calculateMatchScore(parent1, parent2, targetTraits) {
     let score = 0;
-    const combinedGeno = (parent1.genotype + ' ' + parent2.genotype).toLowerCase();
-    
+    const p1Geno = parent1.genotype.toLowerCase();
+    const p2Geno = parent2.genotype.toLowerCase();
+    const combinedGeno = (p1Geno + ' ' + p2Geno);
+
     targetTraits.forEach(trait => {
         const traitLower = trait.toLowerCase();
-        
+
         // Check for specific genes that create this trait
-        // Special coat color names
-        if (traitLower.includes('woad')) {
+        // Compound dilutions with Cream Pearl + Ether
+        if (traitLower.includes('cream pearl ether') || traitLower === 'ombre cream pearl ether' ||
+            traitLower === 'classic cream pearl ether' || traitLower === 'cold cream pearl ether') {
+            // Need Crprl + erer (or er)
+            const hasCreamPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl');
+            const hasEther = combinedGeno.includes('erer') || combinedGeno.includes('ner') || combinedGeno.includes(' er ');
+            if (hasCreamPearl && hasEther) score += 150;
+        } else if (traitLower.includes('cream pearl champagne')) {
+            // Need Crprl + Ch
+            const hasCreamPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl');
+            const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
+            if (hasCreamPearl && hasChampagne) score += 150;
+        } else if (traitLower.includes('tapestry pearl ether') || traitLower === 'tyrian pearl ether' ||
+                   traitLower === 'phthalo pearl ether' || traitLower === 'ochre pearl ether') {
+            // Need Tpprl + erer
+            const hasTapestryPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl');
+            const hasEther = combinedGeno.includes('erer') || combinedGeno.includes('ner') || combinedGeno.includes(' er ');
+            if (hasTapestryPearl && hasEther) score += 150;
+        } else if (traitLower.includes('tapestry pearl champagne')) {
+            // Need Tpprl + Ch
+            const hasTapestryPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl');
+            const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
+            if (hasTapestryPearl && hasChampagne) score += 150;
+        } else if (traitLower.includes('tapestry cream ether') || traitLower === 'madder cream ether' ||
+                   traitLower === 'woad cream ether' || traitLower === 'weld cream ether') {
+            // Need TpCr + erer
+            const hasTapestryCream = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'cr');
+            const hasEther = combinedGeno.includes('erer') || combinedGeno.includes('ner') || combinedGeno.includes(' er ');
+            if (hasTapestryCream && hasEther) score += 150;
+        } else if (traitLower.includes('tapestry cream champagne') || traitLower === 'madder cream champagne' ||
+                   traitLower === 'woad cream champagne' || traitLower === 'weld cream champagne') {
+            // Need TpCr + Ch
+            const hasTapestryCream = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'cr');
+            const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
+            if (hasTapestryCream && hasChampagne) score += 150;
+        } else if (traitLower.includes('pearl ether') && !traitLower.includes('cream') && !traitLower.includes('tapestry')) {
+            // Need prl + er (without cream or tapestry)
+            const hasPearl = p1Geno.includes('prl') || p2Geno.includes('prl');
+            const hasEther = combinedGeno.includes('erer') || combinedGeno.includes('ner') || combinedGeno.includes(' er ');
+            const noCream = !p1Geno.includes('crprl') && !p2Geno.includes('crprl');
+            const noTapestry = !p1Geno.includes('tpprl') && !p2Geno.includes('tpprl');
+            if (hasPearl && hasEther && noCream && noTapestry) score += 120;
+        } else if (traitLower.includes('cream pearl') && !traitLower.includes('ether') && !traitLower.includes('champagne')) {
+            // Need Crprl (cream pearl compound)
+            if (canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl')) score += 100;
+        } else if (traitLower.includes('tapestry pearl') && !traitLower.includes('ether') && !traitLower.includes('champagne')) {
+            // Need Tpprl (tapestry pearl compound)
+            if (canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl')) score += 100;
+        } else if (traitLower.includes('woad')) {
             if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
         } else if (traitLower.includes('madder')) {
             if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
@@ -1285,8 +1356,6 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             if (combinedGeno.includes('nlp') && !combinedGeno.includes('patn')) score += 100;
         } else if (traitLower.includes('starfield')) {
             if (combinedGeno.includes('sfsf')) score += 100;
-        } else if (traitLower.includes('cream pearl')) {
-            if (combinedGeno.includes('prl') && combinedGeno.includes('cr')) score += 100;
         } else if (traitLower.includes('ether')) {
             if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) score += 80;
         } else if (traitLower.includes('filigree')) {
@@ -1299,7 +1368,7 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             score += 50;
         }
     });
-    
+
     return score;
 }
 
