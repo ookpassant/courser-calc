@@ -113,6 +113,11 @@ const SPECIAL_COAT_NAMES = {
     'Black_Champagne': 'Classic Champagne',
     'Chestnut_Champagne': 'Gold Champagne',
 
+    // Ether dilutions
+    'Bay_Ether': 'Ombre Ether',
+    'Black_Ether': 'Classic Ether',
+    'Chestnut_Ether': 'Cold Ether',
+
     // Tapestry + Cream combinations
     'Bay_Tapestry Cream': 'Madder Buckskin',
     'Black_Tapestry Cream': 'Woad Smoky Black',
@@ -198,6 +203,23 @@ const MODIFIER_NAMES = {
     'nsf': 'Starfield', 'sfsf': 'Starfield'
 };
 
+// Traits that appear BEFORE the coat color in phenotype display
+const TRAITS_BEFORE_COAT = [
+    'Dominant White', 'Crowned', 'Flaxen', 'Carrying Flaxen', 'Pangare',
+    'Sooty', 'Gray', 'Silver', 'Illuminated', 'Gilt', 'Opal', 'Prism',
+    'Starfield', 'Vellum'
+];
+
+// Traits that appear AFTER the coat color in phenotype display
+const TRAITS_AFTER_COAT = [
+    'Dun', 'Tabard', 'Cuirass', 'Sepulchered', 'Carrying Sepulchered',
+    // White markings generally go after
+    'Tobiano', 'Overo', 'Splash', 'Roan', 'Sabino', 'Blanket', 'Snowcap',
+    'Varnish Roan', 'Leopard', 'Fewspot', 'Snowflake', 'Ossuary',
+    'Shroud', 'Filigree', 'Harlequin', 'Rabicano', 'False Leopard',
+    'Girdle', 'Collar', 'Blanched'
+];
+
 const WHITE_MARKING_NAMES = {
     'nSpl': 'Splash',
     'nR': 'Roan', 'RnT': 'Roan',
@@ -234,8 +256,7 @@ function genotypeToPhenotype(genoString) {
 
     let baseCoat = '';
     let dilutions = [];
-    let whiteMarkings = [];
-    let modifiers = [];
+    const allTraits = []; // Collect all traits with their category
 
     // Find base coat (E and A genes)
     const eGene = genes.find(g => g.match(/^[Ee][Ee]?$/));
@@ -280,78 +301,79 @@ function genotypeToPhenotype(genoString) {
         });
     }
 
-    // Find white markings
-    genes.forEach(gene => {
-        if (WHITE_MARKING_NAMES[gene]) {
-            whiteMarkings.push(WHITE_MARKING_NAMES[gene]);
-        }
-    });
-
-    // Check for Leopard Complex patterns (Lp + patn combinations)
-    const lpGene = genes.find(g => g === 'nLp' || g === 'LpLp');
-    const patnGene = genes.find(g => g === 'patn' || g === 'patnpatn');
-
-    if (lpGene) {
-        const isHomozygousLp = lpGene === 'LpLp';
-        const patnStatus = patnGene ? (patnGene === 'patnpatn' ? 'homozygous' : 'heterozygous') : 'none';
-
-        let leopardPattern = '';
-        if (isHomozygousLp && patnStatus === 'homozygous') {
-            leopardPattern = 'Fewspot';
-        } else if (isHomozygousLp && patnStatus === 'heterozygous') {
-            leopardPattern = 'Snowcap';
-        } else if (isHomozygousLp && patnStatus === 'none') {
-            leopardPattern = 'Varnish Roan';
-        } else if (!isHomozygousLp && patnStatus === 'homozygous') {
-            leopardPattern = 'Leopard';
-        } else if (!isHomozygousLp && patnStatus === 'heterozygous') {
-            leopardPattern = 'Blanket';
-        } else if (!isHomozygousLp && patnStatus === 'none') {
-            leopardPattern = 'Snowflake';
-        }
-
-        if (leopardPattern) {
-            whiteMarkings.push(leopardPattern);
+    // Build special coat color name
+    let coatColor = baseCoat;
+    if (dilutions.length > 0) {
+        const dilutionStr = dilutions.join(' ');
+        const specialKey = `${baseCoat}_${dilutionStr}`;
+        if (SPECIAL_COAT_NAMES[specialKey]) {
+            coatColor = SPECIAL_COAT_NAMES[specialKey];
+        } else {
+            coatColor += ' ' + dilutionStr;
         }
     }
 
-    // Find modifiers (with special handling for recessive genes)
+    // Process white markings
+    genes.forEach(gene => {
+        if (WHITE_MARKING_NAMES[gene]) {
+            allTraits.push(WHITE_MARKING_NAMES[gene]);
+        }
+    });
+
+    // Check for Leopard Complex patterns
+    const lpGene = genes.find(g => g === 'nLp' || g === 'LpLp');
+    const patnGene = genes.find(g => g === 'patn' || g === 'patnpatn');
+    if (lpGene) {
+        const isHomozygousLp = lpGene === 'LpLp';
+        const patnStatus = patnGene ? (patnGene === 'patnpatn' ? 'homozygous' : 'heterozygous') : 'none';
+        let leopardPattern = '';
+        if (isHomozygousLp && patnStatus === 'homozygous') leopardPattern = 'Fewspot';
+        else if (isHomozygousLp && patnStatus === 'heterozygous') leopardPattern = 'Snowcap';
+        else if (isHomozygousLp && patnStatus === 'none') leopardPattern = 'Varnish Roan';
+        else if (!isHomozygousLp && patnStatus === 'homozygous') leopardPattern = 'Leopard';
+        else if (!isHomozygousLp && patnStatus === 'heterozygous') leopardPattern = 'Blanket';
+        else if (!isHomozygousLp && patnStatus === 'none') leopardPattern = 'Snowflake';
+        if (leopardPattern) allTraits.push(leopardPattern);
+    }
+
+    // Process modifiers with special handling
     genes.forEach(gene => {
         if (MODIFIER_NAMES[gene]) {
-            // Special case for Flaxen - show "Carrying" for heterozygous
-            if (gene === 'nf') {
-                modifiers.push('Carrying Flaxen');
+            // Handle compound heterozygous genes by splitting them
+            if (gene === 'CuCw') {
+                allTraits.push('Crowned');
+                allTraits.push('Cuirass');
+            } else if (gene === 'PrOp') {
+                allTraits.push('Prism');
+                allTraits.push('Opal');
+            } else if (gene === 'Lusp') {
+                allTraits.push('Illuminated');
+                allTraits.push('Sepulchered');
+            } else if (gene === 'nf') {
+                allTraits.push('Carrying Flaxen');
+            } else if (gene === 'nsp') {
+                allTraits.push('Carrying Sepulchered');
             } else {
-                modifiers.push(MODIFIER_NAMES[gene]);
+                allTraits.push(MODIFIER_NAMES[gene]);
             }
         }
     });
 
-    // Build phenotype string with special coat color names
-    let phenotype = baseCoat;
+    // Separate traits into before and after coat
+    const traitsBeforeCoat = allTraits.filter(trait => TRAITS_BEFORE_COAT.includes(trait));
+    const traitsAfterCoat = allTraits.filter(trait => TRAITS_AFTER_COAT.includes(trait));
 
-    if (dilutions.length > 0) {
-        const dilutionStr = dilutions.join(' ');
-        const specialKey = `${baseCoat}_${dilutionStr}`;
+    // Build phenotype string in in-game format
+    const phenotypeParts = [];
+    if (traitsBeforeCoat.length > 0) phenotypeParts.push(traitsBeforeCoat.join(' '));
+    phenotypeParts.push(coatColor);
+    if (traitsAfterCoat.length > 0) phenotypeParts.push(traitsAfterCoat.join(' '));
 
-        // Check if there's a special name for this base + dilution combination
-        if (SPECIAL_COAT_NAMES[specialKey]) {
-            phenotype = SPECIAL_COAT_NAMES[specialKey];
-        } else {
-            phenotype += ' ' + dilutionStr;
-        }
-    }
+    let phenotype = phenotypeParts.join(' ');
 
-    if (whiteMarkings.length > 0) {
-        phenotype += ' with ' + whiteMarkings.join(', ');
-    }
-
-    if (modifiers.length > 0) {
-        phenotype += (whiteMarkings.length > 0 ? ' and ' : ' with ') + modifiers.join(', ');
-    }
-
+    // Add anomalies with "with" instead of "+"
     if (anomalies.length > 0) {
-        phenotype += ' + ' + anomalies.join(', ');
+        phenotype += ' with ' + anomalies.join(', ');
     }
 
     return phenotype.trim();
