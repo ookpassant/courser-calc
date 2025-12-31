@@ -115,7 +115,7 @@ const MODIFIER_NAMES = {
     'nV': 'Vellum',
     'nOp': 'Opal',
     'nPr': 'Prism',
-    'sfsf': 'Starfield'
+    'nsf': 'Starfield', 'sfsf': 'Starfield'
 };
 
 const WHITE_MARKING_NAMES = {
@@ -139,7 +139,7 @@ const WHITE_MARKING_NAMES = {
     'nHq': 'Harlequin',
     'nFs': 'Fewspot',
     'nSh': 'Shroud',
-    'fefe': 'Filigree',
+    'nfe': 'Filigree', 'fefe': 'Filigree',
     'nOs': 'Ossuary'
 };
 
