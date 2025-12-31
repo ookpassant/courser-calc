@@ -86,12 +86,95 @@ const COAT_COLORS = {
     'ee_AA': 'Chestnut', 'ee_Aa': 'Chestnut', 'ee_aa': 'Chestnut'
 };
 
+// Special coat color names for base + dilution combinations
+const SPECIAL_COAT_NAMES = {
+    // Single Cream dilutions
+    'Bay_Cream': 'Buckskin',
+    'Black_Cream': 'Smoky Black',
+    'Chestnut_Cream': 'Palomino',
+
+    // Double Cream dilutions
+    'Bay_Double Cream': 'Perlino',
+    'Black_Double Cream': 'Smoky Cream',
+    'Chestnut_Double Cream': 'Cremello',
+
+    // Single Tapestry dilutions
+    'Bay_Tapestry': 'Madder',
+    'Black_Tapestry': 'Woad',
+    'Chestnut_Tapestry': 'Weld',
+
+    // Pearl dilutions
+    'Bay_Pearl': 'Bay Pearl',
+    'Black_Pearl': 'Black Pearl',
+    'Chestnut_Pearl': 'Gold Pearl',
+
+    // Champagne dilutions
+    'Bay_Champagne': 'Amber Champagne',
+    'Black_Champagne': 'Classic Champagne',
+    'Chestnut_Champagne': 'Gold Champagne',
+
+    // Ether dilutions
+    'Bay_Ether': 'Ombre Ether',
+    'Black_Ether': 'Classic Ether',
+    'Chestnut_Ether': 'Cold Ether',
+
+    // Tapestry + Cream combinations
+    'Bay_Tapestry Cream': 'Madder Buckskin',
+    'Black_Tapestry Cream': 'Woad Smoky Black',
+    'Chestnut_Tapestry Cream': 'Weld Palomino',
+
+    // Tapestry Ether combinations
+    'Bay_Tapestry Ether': 'Madder Ether',
+    'Black_Tapestry Ether': 'Woad Ether',
+    'Chestnut_Tapestry Ether': 'Weld Ether',
+
+    // Pearl Ether combinations
+    'Bay_Pearl Ether': 'Bay Pearl Ether',
+    'Black_Pearl Ether': 'Black Pearl Ether',
+    'Chestnut_Pearl Ether': 'Gold Pearl Ether',
+
+    // Cream Pearl Champagne (triple dilution)
+    'Bay_Cream Pearl Champagne': 'Amber Cream Pearl Champagne',
+    'Black_Cream Pearl Champagne': 'Classic Cream Pearl Champagne',
+    'Chestnut_Cream Pearl Champagne': 'Gold Cream Pearl Champagne',
+
+    // Cream Pearl Ether (triple dilution)
+    'Bay_Cream Pearl Ether': 'Ombre Cream Pearl Ether',
+    'Black_Cream Pearl Ether': 'Classic Cream Pearl Ether',
+    'Chestnut_Cream Pearl Ether': 'Cold Cream Pearl Ether',
+
+    // Tapestry Cream Ether (triple dilution)
+    'Bay_Tapestry Cream Ether': 'Madder Cream Ether',
+    'Black_Tapestry Cream Ether': 'Woad Cream Ether',
+    'Chestnut_Tapestry Cream Ether': 'Weld Cream Ether',
+
+    // Tapestry Pearl (base double dilution)
+    'Bay_Tapestry Pearl': 'Tyrian Pearl',
+    'Black_Tapestry Pearl': 'Phthalo Pearl',
+    'Chestnut_Tapestry Pearl': 'Ochre Pearl',
+
+    // Tapestry Pearl Champagne (triple dilution)
+    'Bay_Tapestry Pearl Champagne': 'Tyrian Pearl Champagne',
+    'Black_Tapestry Pearl Champagne': 'Phthalo Pearl Champagne',
+    'Chestnut_Tapestry Pearl Champagne': 'Ochre Pearl Champagne',
+
+    // Tapestry Pearl Ether (triple dilution)
+    'Bay_Tapestry Pearl Ether': 'Tyrian Pearl Ether',
+    'Black_Tapestry Pearl Ether': 'Phthalo Pearl Ether',
+    'Chestnut_Tapestry Pearl Ether': 'Ochre Pearl Ether',
+
+    // Tapestry Cream Champagne (triple dilution)
+    'Bay_Tapestry Cream Champagne': 'Madder Cream Champagne',
+    'Black_Tapestry Cream Champagne': 'Woad Cream Champagne',
+    'Chestnut_Tapestry Cream Champagne': 'Weld Cream Champagne'
+};
+
 const DILUTION_NAMES = {
-    'Cr': 'Cream', 'CrCr': 'Double Cream',
-    'Tp': 'Tapestry', 'TpTp': 'Tapestry',
-    'prl': 'Pearl', 'prlprl': 'Pearl',
-    'Ch': 'Champagne', 'ChCh': 'Champagne',
-    'er': 'Ether', 'erer': 'Ether',
+    'nCr': 'Cream', 'Cr': 'Cream', 'CrCr': 'Double Cream',
+    'nTp': 'Tapestry', 'Tp': 'Tapestry', 'TpTp': 'Tapestry',
+    'nprl': 'Pearl', 'prl': 'Pearl', 'prlprl': 'Pearl',
+    'nCh': 'Champagne', 'Ch': 'Champagne', 'ChCh': 'Champagne',
+    'ner': 'Ether', 'er': 'Ether', 'erer': 'Ether',
     'Crprl': 'Cream Pearl', 'TpCr': 'Tapestry Cream',
     'Tpprl': 'Tapestry Pearl', 'CrCh': 'Cream Champagne',
     'prlCh': 'Pearl Champagne', 'TpCh': 'Tapestry Champagne',
@@ -106,19 +189,36 @@ const MODIFIER_NAMES = {
     'nP': 'Pangare',
     'nSty': 'Sooty',
     'nG': 'Gray',
-    'ff': 'Flaxen',
+    'nf': 'Flaxen', 'ff': 'Flaxen',
     'nZ': 'Silver',
     'nLu': 'Illuminated',
-    'spsp': 'Sepulchered',
+    'nsp': 'Sepulchered', 'spsp': 'Sepulchered',
+    'Lusp': 'Illuminated Sepulchered',
     'nTd': 'Tabard',
     'nGl': 'Gilt',
     'nV': 'Vellum',
     'nOp': 'Opal',
     'nPr': 'Prism',
-    'sfsf': 'Starfield',
     'PrOp': 'Prism Opal',
-    'Lusp': 'Illuminated'
+    'nsf': 'Starfield', 'sfsf': 'Starfield'
 };
+
+// Traits that appear BEFORE the coat color in phenotype display
+const TRAITS_BEFORE_COAT = [
+    'Dominant White', 'Crowned', 'Flaxen', 'Carrying Flaxen', 'Pangare',
+    'Sooty', 'Gray', 'Silver', 'Illuminated', 'Gilt', 'Opal', 'Prism',
+    'Starfield', 'Vellum'
+];
+
+// Traits that appear AFTER the coat color in phenotype display
+const TRAITS_AFTER_COAT = [
+    'Dun', 'Tabard', 'Cuirass', 'Sepulchered', 'Carrying Sepulchered',
+    // White markings generally go after
+    'Tobiano', 'Overo', 'Splash', 'Roan', 'Sabino', 'Blanket', 'Snowcap',
+    'Varnish Roan', 'Leopard', 'Fewspot', 'Snowflake', 'Ossuary',
+    'Shroud', 'Filigree', 'Harlequin', 'Rabicano', 'False Leopard',
+    'Girdle', 'Collar', 'Blanched'
+];
 
 const WHITE_MARKING_NAMES = {
     'nSpl': 'Splash',
@@ -133,15 +233,13 @@ const WHITE_MARKING_NAMES = {
     'nGi': 'Girdle',
     'nCo': 'Collar',
     'nBl': 'Blanched',
-    'nLp': 'Varnish Roan',
-    'LpLp': 'Varnish Roan',
     'nW': 'Dominant White',
     'nRb': 'Rabicano',
     'nFl': 'False Leopard',
     'nHq': 'Harlequin',
     'nFs': 'Fewspot',
     'nSh': 'Shroud',
-    'fefe': 'Filigree',
+    'nfe': 'Filigree', 'fefe': 'Filigree',
     'nOs': 'Ossuary'
 };
 
@@ -158,8 +256,7 @@ function genotypeToPhenotype(genoString) {
 
     let baseCoat = '';
     let dilutions = [];
-    let whiteMarkings = [];
-    let modifiers = [];
+    const allTraits = []; // Collect all traits with their category
 
     // Find base coat (E and A genes)
     const eGene = genes.find(g => g.match(/^[Ee][Ee]?$/));
@@ -204,37 +301,79 @@ function genotypeToPhenotype(genoString) {
         });
     }
 
-    // Find white markings
+    // Build special coat color name
+    let coatColor = baseCoat;
+    if (dilutions.length > 0) {
+        const dilutionStr = dilutions.join(' ');
+        const specialKey = `${baseCoat}_${dilutionStr}`;
+        if (SPECIAL_COAT_NAMES[specialKey]) {
+            coatColor = SPECIAL_COAT_NAMES[specialKey];
+        } else {
+            coatColor += ' ' + dilutionStr;
+        }
+    }
+
+    // Process white markings
     genes.forEach(gene => {
         if (WHITE_MARKING_NAMES[gene]) {
-            whiteMarkings.push(WHITE_MARKING_NAMES[gene]);
+            allTraits.push(WHITE_MARKING_NAMES[gene]);
         }
     });
 
-    // Find modifiers
+    // Check for Leopard Complex patterns
+    const lpGene = genes.find(g => g === 'nLp' || g === 'LpLp');
+    const patnGene = genes.find(g => g === 'patn' || g === 'patnpatn');
+    if (lpGene) {
+        const isHomozygousLp = lpGene === 'LpLp';
+        const patnStatus = patnGene ? (patnGene === 'patnpatn' ? 'homozygous' : 'heterozygous') : 'none';
+        let leopardPattern = '';
+        if (isHomozygousLp && patnStatus === 'homozygous') leopardPattern = 'Fewspot';
+        else if (isHomozygousLp && patnStatus === 'heterozygous') leopardPattern = 'Snowcap';
+        else if (isHomozygousLp && patnStatus === 'none') leopardPattern = 'Varnish Roan';
+        else if (!isHomozygousLp && patnStatus === 'homozygous') leopardPattern = 'Leopard';
+        else if (!isHomozygousLp && patnStatus === 'heterozygous') leopardPattern = 'Blanket';
+        else if (!isHomozygousLp && patnStatus === 'none') leopardPattern = 'Snowflake';
+        if (leopardPattern) allTraits.push(leopardPattern);
+    }
+
+    // Process modifiers with special handling
     genes.forEach(gene => {
         if (MODIFIER_NAMES[gene]) {
-            modifiers.push(MODIFIER_NAMES[gene]);
+            // Handle compound heterozygous genes by splitting them
+            if (gene === 'CuCw') {
+                allTraits.push('Crowned');
+                allTraits.push('Cuirass');
+            } else if (gene === 'PrOp') {
+                allTraits.push('Prism');
+                allTraits.push('Opal');
+            } else if (gene === 'Lusp') {
+                allTraits.push('Illuminated');
+                allTraits.push('Sepulchered');
+            } else if (gene === 'nf') {
+                allTraits.push('Carrying Flaxen');
+            } else if (gene === 'nsp') {
+                allTraits.push('Carrying Sepulchered');
+            } else {
+                allTraits.push(MODIFIER_NAMES[gene]);
+            }
         }
     });
 
-    // Build phenotype string
-    let phenotype = baseCoat;
+    // Separate traits into before and after coat
+    const traitsBeforeCoat = allTraits.filter(trait => TRAITS_BEFORE_COAT.includes(trait));
+    const traitsAfterCoat = allTraits.filter(trait => TRAITS_AFTER_COAT.includes(trait));
 
-    if (dilutions.length > 0) {
-        phenotype += ' ' + dilutions.join(' ');
-    }
+    // Build phenotype string in in-game format
+    const phenotypeParts = [];
+    if (traitsBeforeCoat.length > 0) phenotypeParts.push(traitsBeforeCoat.join(' '));
+    phenotypeParts.push(coatColor);
+    if (traitsAfterCoat.length > 0) phenotypeParts.push(traitsAfterCoat.join(' '));
 
-    if (whiteMarkings.length > 0) {
-        phenotype += ' with ' + whiteMarkings.join(', ');
-    }
+    let phenotype = phenotypeParts.join(' ');
 
-    if (modifiers.length > 0) {
-        phenotype += (whiteMarkings.length > 0 ? ' and ' : ' with ') + modifiers.join(', ');
-    }
-
+    // Add anomalies with "with" instead of "+"
     if (anomalies.length > 0) {
-        phenotype += ' + ' + anomalies.join(', ');
+        phenotype += ' with ' + anomalies.join(', ');
     }
 
     return phenotype.trim();
@@ -285,10 +424,14 @@ function getGeneAlleles(gene) {
     if (gene === 'sfsf') return ['sf', 'sf'];
     if (gene === 'fefe') return ['fe', 'fe'];
     
+    // Compound heterozygous genes
+    if (gene === 'Lusp') return ['Lu', 'sp'];
+    if (gene === 'PrOp') return ['Pr', 'Op'];
+
     // Complex patterns
     if (gene === 'patnpatn') return ['patn', 'patn'];
     if (gene === 'patn') return ['patn'];
-    
+
     return [gene];
 }
 
@@ -407,12 +550,12 @@ function generateFoal(parent1, parent2, variation) {
         }
     }
     
-    // White markings
+    // White markings (excluding Lp and patn - handled separately)
     [...p1.genes, ...p2.genes].forEach(gene => {
-        if (gene.match(/^n[A-Z]/) || gene.match(/^[A-Z]{2}/) || gene === 'fefe' || 
-            gene.includes('Lp') || gene.includes('patn')) {
-            
-            if (!gene.match(/^(E|A|Cr|Tp|prl|er|Ch|[nN]?[fsp])/)) {
+        if (gene.match(/^n[A-Z]/) || gene.match(/^[A-Z]{2}/) || gene === 'fefe') {
+
+            if (!gene.match(/^(E|A|Cr|Tp|prl|er|Ch|[nN]?[fsp])/) &&
+                !gene.includes('Lp') && !gene.includes('patn')) {
                 if (Math.random() < 0.5) {
                     if (!foalGenes.includes(gene)) {
                         foalGenes.push(gene);
@@ -422,28 +565,25 @@ function generateFoal(parent1, parent2, variation) {
         }
     });
     
-    // Leopard complex
+    // Leopard complex - inherit Lp and patn genes properly
     const p1Lp = p1.genes.find(g => g.includes('Lp'));
     const p2Lp = p2.genes.find(g => g.includes('Lp'));
-    const p1patn = p1.genes.filter(g => g.includes('patn')).length;
-    const p2patn = p2.genes.filter(g => g.includes('patn')).length;
-    
+    const p1patn = p1.genes.find(g => g.includes('patn'));
+    const p2patn = p2.genes.find(g => g.includes('patn'));
+
     if (p1Lp || p2Lp) {
-        if (Math.random() < 0.5) {
-            const lpAlleles = [];
-            if (p1Lp) lpAlleles.push(...getGeneAlleles(p1Lp));
-            if (p2Lp) lpAlleles.push(...getGeneAlleles(p2Lp));
-            
-            const lpGene = lpAlleles[Math.floor(Math.random() * lpAlleles.length)];
-            if (lpGene === 'Lp') {
-                foalGenes.push(Math.random() < 0.3 ? 'LpLp' : 'nLp');
-            }
-            
-            // Pattern genes
-            const totalPatn = p1patn + p2patn;
-            if (totalPatn > 0 && Math.random() < 0.6) {
-                foalGenes.push(Math.random() < 0.3 ? 'patnpatn' : 'patn');
-            }
+        // Use Mendelian inheritance for Lp
+        const lpGene = inheritGene(p1Lp || 'nn', p2Lp || 'nn');
+        if (lpGene !== 'nn' && lpGene !== 'n') {
+            foalGenes.push(lpGene);
+        }
+    }
+
+    if (p1patn || p2patn) {
+        // Use Mendelian inheritance for patn (recessive)
+        const patnGene = inheritGene(p1patn || 'nn', p2patn || 'nn');
+        if (patnGene !== 'nn' && patnGene !== 'n') {
+            foalGenes.push(patnGene);
         }
     }
     
@@ -746,24 +886,75 @@ function searchBreeding() {
 function extractTraitsFromQuery(query) {
     const traits = [];
     
-    // Coat colors
+    // Coat colors - check specific names first, then generic ones
+    // Legendary triple dilutions
+    if (query.includes('tyrian pearl champagne')) traits.push('Tyrian Pearl Champagne');
+    if (query.includes('phthalo pearl champagne')) traits.push('Phthalo Pearl Champagne');
+    if (query.includes('ochre pearl champagne')) traits.push('Ochre Pearl Champagne');
+    if (query.includes('tyrian pearl ether')) traits.push('Tyrian Pearl Ether');
+    if (query.includes('phthalo pearl ether')) traits.push('Phthalo Pearl Ether');
+    if (query.includes('ochre pearl ether')) traits.push('Ochre Pearl Ether');
+    if (query.includes('madder cream champagne')) traits.push('Madder Cream Champagne');
+    if (query.includes('woad cream champagne')) traits.push('Woad Cream Champagne');
+    if (query.includes('weld cream champagne')) traits.push('Weld Cream Champagne');
+    if (query.includes('madder cream ether')) traits.push('Madder Cream Ether');
+    if (query.includes('woad cream ether')) traits.push('Woad Cream Ether');
+    if (query.includes('weld cream ether')) traits.push('Weld Cream Ether');
+    if (query.includes('amber cream pearl champagne')) traits.push('Amber Cream Pearl Champagne');
+    if (query.includes('classic cream pearl champagne')) traits.push('Classic Cream Pearl Champagne');
+    if (query.includes('gold cream pearl champagne')) traits.push('Gold Cream Pearl Champagne');
+    if (query.includes('ombre cream pearl ether')) traits.push('Ombre Cream Pearl Ether');
+    if (query.includes('classic cream pearl ether')) traits.push('Classic Cream Pearl Ether');
+    if (query.includes('cold cream pearl ether')) traits.push('Cold Cream Pearl Ether');
+
+    // Epic double dilutions
+    if (query.includes('tyrian pearl')) traits.push('Tyrian Pearl');
+    if (query.includes('phthalo pearl')) traits.push('Phthalo Pearl');
+    if (query.includes('ochre pearl')) traits.push('Ochre Pearl');
+    if (query.includes('madder ether')) traits.push('Madder Ether');
+    if (query.includes('woad ether')) traits.push('Woad Ether');
+    if (query.includes('weld ether')) traits.push('Weld Ether');
+    if (query.includes('bay pearl ether')) traits.push('Bay Pearl Ether');
+    if (query.includes('black pearl ether')) traits.push('Black Pearl Ether');
+    if (query.includes('gold pearl ether')) traits.push('Gold Pearl Ether');
+    if (query.includes('madder buckskin')) traits.push('Madder Buckskin');
+    if (query.includes('woad smoky black')) traits.push('Woad Smoky Black');
+    if (query.includes('weld palomino')) traits.push('Weld Palomino');
+
+    // Common/Uncommon single dilutions
     if (query.includes('amber champagne') || query.includes('amber champ')) traits.push('Amber Champagne');
     if (query.includes('gold champagne') || query.includes('gold champ')) traits.push('Gold Champagne');
     if (query.includes('classic champagne')) traits.push('Classic Champagne');
+    if (query.includes('bay pearl')) traits.push('Bay Pearl');
+    if (query.includes('black pearl')) traits.push('Black Pearl');
+    if (query.includes('gold pearl')) traits.push('Gold Pearl');
+    if (query.includes('madder')) traits.push('Madder');
+    if (query.includes('woad')) traits.push('Woad');
+    if (query.includes('weld')) traits.push('Weld');
+    if (query.includes('buckskin')) traits.push('Buckskin');
+    if (query.includes('smoky black')) traits.push('Smoky Black');
+    if (query.includes('palomino')) traits.push('Palomino');
+    if (query.includes('perlino')) traits.push('Perlino');
+    if (query.includes('smoky cream')) traits.push('Smoky Cream');
+    if (query.includes('cremello')) traits.push('Cremello');
+
+    // Generic dilution genes (fallback)
     if (query.includes('cream') && !query.includes('pearl')) traits.push('Cream');
     if (query.includes('pearl') && !query.includes('cream')) traits.push('Pearl');
     if (query.includes('cream pearl') || query.includes('pearl cream')) traits.push('Cream Pearl');
     if (query.includes('tapestry')) traits.push('Tapestry');
     if (query.includes('ether')) traits.push('Ether');
-    if (query.includes('perlino')) traits.push('Perlino');
-    if (query.includes('smoky')) traits.push('Smoky');
-    if (query.includes('buckskin')) traits.push('Buckskin');
     
     // White markings
+    // Leopard Complex patterns
     if (query.includes('fewspot')) traits.push('Fewspot');
+    if (query.includes('snowcap')) traits.push('Snowcap');
+    if (query.includes('varnish')) traits.push('Varnish Roan');
     if (query.includes('leopard')) traits.push('Leopard');
     if (query.includes('blanket')) traits.push('Blanket');
-    if (query.includes('varnish')) traits.push('Varnish Roan');
+    if (query.includes('snowflake')) traits.push('Snowflake');
+
+    // Other white markings
     if (query.includes('tobiano')) traits.push('Tobiano');
     if (query.includes('overo')) traits.push('Overo');
     if (query.includes('splash')) traits.push('Splash');
@@ -827,18 +1018,45 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
         const traitLower = trait.toLowerCase();
         
         // Check for specific genes that create this trait
-        if (traitLower.includes('amber champagne')) {
-            if (combinedGeno.includes('nch') && (combinedGeno.includes('ee aa') || combinedGeno.includes('ee_aa'))) score += 100;
+        // Special coat color names
+        if (traitLower.includes('woad')) {
+            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+        } else if (traitLower.includes('madder')) {
+            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+        } else if (traitLower.includes('weld')) {
+            if (combinedGeno.includes('tp') && combinedGeno.includes('ee')) score += 100;
+        } else if (traitLower.includes('buckskin')) {
+            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+        } else if (traitLower.includes('smoky black')) {
+            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+        } else if (traitLower.includes('palomino')) {
+            if (combinedGeno.includes('cr') && combinedGeno.includes('ee')) score += 100;
+        } else if (traitLower.includes('perlino')) {
+            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+        } else if (traitLower.includes('smoky cream')) {
+            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+        } else if (traitLower.includes('cremello')) {
+            if (combinedGeno.includes('crcr') && combinedGeno.includes('ee')) score += 100;
+        } else if (traitLower.includes('amber champagne')) {
+            if (combinedGeno.includes('ch') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
         } else if (traitLower.includes('fewspot')) {
-            if (combinedGeno.includes('lplp') && combinedGeno.includes('patn')) score += 100;
+            if (combinedGeno.includes('lplp') && combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('snowcap')) {
+            if (combinedGeno.includes('lplp') && combinedGeno.includes('patn') && !combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('varnish roan')) {
+            if (combinedGeno.includes('lplp') && !combinedGeno.includes('patn')) score += 100;
+        } else if (traitLower.includes('leopard')) {
+            if (combinedGeno.includes('nlp') && combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('blanket')) {
+            if (combinedGeno.includes('nlp') && combinedGeno.includes('patn') && !combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('snowflake')) {
+            if (combinedGeno.includes('nlp') && !combinedGeno.includes('patn')) score += 100;
         } else if (traitLower.includes('starfield')) {
             if (combinedGeno.includes('sfsf')) score += 100;
         } else if (traitLower.includes('cream pearl')) {
             if (combinedGeno.includes('prl') && combinedGeno.includes('cr')) score += 100;
         } else if (traitLower.includes('ether')) {
             if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) score += 80;
-        } else if (traitLower.includes('leopard')) {
-            if (combinedGeno.includes('lp') && combinedGeno.includes('patn')) score += 80;
         } else if (traitLower.includes('filigree')) {
             if (combinedGeno.includes('fefe') || combinedGeno.includes('nfe')) score += 100;
         } else if (traitLower.includes('ossuary')) {
@@ -948,21 +1166,130 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
         }
     });
 
-    // Get all available white markings
-    const whiteMarkings = new Set();
+    // Get all available modifiers
+    const modifiers = new Set();
+
+    // For recessive genes, check if both parents carry the allele
+    const recessiveGenes = ['f', 'sp', 'sf', 'fe']; // Flaxen, Sepulchered, Starfield, Filigree
+    const parent1Alleles = new Set();
+    const parent2Alleles = new Set();
+
+    p1.genes.forEach(gene => {
+        const alleles = getGeneAlleles(gene);
+        alleles.forEach(a => parent1Alleles.add(a));
+    });
+
+    p2.genes.forEach(gene => {
+        const alleles = getGeneAlleles(gene);
+        alleles.forEach(a => parent2Alleles.add(a));
+    });
+
     allParentGenes.forEach(gene => {
-        if (WHITE_MARKING_NAMES[gene]) {
-            whiteMarkings.add(WHITE_MARKING_NAMES[gene]);
+        if (MODIFIER_NAMES[gene]) {
+            const name = MODIFIER_NAMES[gene];
+
+            // Check if this is a recessive gene that needs both parents
+            if (gene.startsWith('n') && gene.length > 2) {
+                const allele = gene.substring(1);
+                if (recessiveGenes.includes(allele)) {
+                    // Only add if both parents have this allele
+                    if (parent1Alleles.has(allele) && parent2Alleles.has(allele)) {
+                        modifiers.add(name);
+                    }
+                    return;
+                }
+            } else if (recessiveGenes.some(r => gene === r + r)) {
+                // Homozygous recessive (like spsp, ff, etc.)
+                const allele = gene.substring(0, gene.length / 2);
+                if (parent1Alleles.has(allele) && parent2Alleles.has(allele)) {
+                    modifiers.add(name);
+                }
+                return;
+            }
+
+            // For compound heterozygous (like Lusp), extract what actually shows
+            if (gene === 'Lusp') {
+                modifiers.add('Illuminated'); // Lu is dominant
+                // Only add Sepulchered if both parents have sp allele
+                if (parent1Alleles.has('sp') && parent2Alleles.has('sp')) {
+                    modifiers.add('Sepulchered');
+                }
+                return;
+            }
+
+            if (gene === 'PrOp') {
+                modifiers.add('Prism'); // Pr is dominant
+                modifiers.add('Opal'); // Op is dominant
+                return;
+            }
+
+            // All other modifiers (dominant or already filtered)
+            modifiers.add(name);
         }
     });
 
-    // Get all available modifiers
-    const modifiers = new Set();
+    // Similar check for white markings with recessive genes
+    const whiteMarkings = new Set();
     allParentGenes.forEach(gene => {
-        if (MODIFIER_NAMES[gene]) {
-            modifiers.add(MODIFIER_NAMES[gene]);
+        if (WHITE_MARKING_NAMES[gene]) {
+            const name = WHITE_MARKING_NAMES[gene];
+
+            // Check Filigree (recessive)
+            if (gene === 'nfe' || gene === 'fefe') {
+                if (parent1Alleles.has('fe') && parent2Alleles.has('fe')) {
+                    whiteMarkings.add(name);
+                }
+                return;
+            }
+
+            // All other white markings (dominant)
+            whiteMarkings.add(name);
         }
     });
+
+    // Generate Leopard Complex patterns from Lp and patn combinations
+    // Check if we can make nLp (need at least one parent with Lp)
+    const canMakeHetLp = (parent1Alleles.has('Lp') || parent2Alleles.has('Lp'));
+
+    // Check if we can make LpLp (need both parents with Lp)
+    const canMakeHomLp = parent1Alleles.has('Lp') && parent2Alleles.has('Lp');
+
+    // Check if patn can be inherited (both parents must have it for it to show as homozygous)
+    const canShowPatn = parent1Alleles.has('patn') && parent2Alleles.has('patn');
+
+    // Generate all possible Leopard Complex patterns (only if at least one parent has Lp)
+    if (canMakeHetLp) {
+        const leopardPatterns = new Set();
+
+        // Patterns WITH patn (only if both parents carry patn)
+        if (canMakeHetLp && canShowPatn) {
+            // nLp patnpatn = Leopard
+            leopardPatterns.add('Leopard');
+            // nLp patn = Blanket
+            leopardPatterns.add('Blanket');
+        }
+
+        if (canMakeHomLp && canShowPatn) {
+            // LpLp patnpatn = Fewspot
+            leopardPatterns.add('Fewspot');
+            // LpLp patn = Snowcap
+            leopardPatterns.add('Snowcap');
+        }
+
+        // Patterns WITHOUT patn (always possible - patch might not inherit patn)
+        if (canMakeHetLp) {
+            // nLp (no patn) = Snowflake
+            leopardPatterns.add('Snowflake');
+        }
+
+        if (canMakeHomLp) {
+            // LpLp (no patn) = Varnish Roan
+            leopardPatterns.add('Varnish Roan');
+        }
+
+        // Add all possible patterns to white markings
+        leopardPatterns.forEach(pattern => whiteMarkings.add(pattern));
+    }
 
     // Get parent anomalies (excluding Chimera)
     const anomalies = new Set(allParentAnomalies.filter(a => a !== 'Chimera'));
