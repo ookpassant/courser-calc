@@ -393,22 +393,29 @@ function getGeneAlleles(gene) {
         return ['n', gene.substring(1)];
     }
     
-    // Check for combined dilutions
+    // Check for combined dilutions (allelic - Cr, Tp, prl, er, Ch share a locus)
+    // Compounds represent two different alleles at the same locus
     if (gene.includes('Cr') && gene.includes('prl')) {
-        return ['Cr', 'prl'];
+        return ['Cr', 'prl'];  // Crprl
     }
     if (gene.includes('Tp') && gene.includes('prl')) {
-        return ['Tp', 'prl'];
+        return ['Tp', 'prl'];  // Tpprl
     }
     if (gene.includes('Tp') && gene.includes('Cr')) {
-        return ['Tp', 'Cr'];
+        return ['Tp', 'Cr'];  // TpCr
     }
     if (gene.includes('prl') && gene.includes('Ch')) {
-        return ['prl', 'Ch'];
+        return ['prl', 'Ch'];  // prlCh
     }
     if (gene.includes('Cr') && gene.includes('Ch')) {
-        return ['Cr', 'Ch'];
+        return ['Cr', 'Ch'];  // CrCh
     }
+    if (gene.includes('Tp') && gene.includes('Ch')) {
+        return ['Tp', 'Ch'];  // TpCh
+    }
+    // Note: er (Ether) is on a separate locus from Cr/Tp/prl/Ch
+    // So Crer, Tper, prler don't exist as compound genes
+    // They appear as separate genes: "nCr ner", "nTp erer", etc.
     
     // Homozygous versions
     if (gene === 'CrCr') return ['Cr', 'Cr'];
@@ -480,10 +487,9 @@ function combineAlleles(allele1, allele2) {
     if ((allele1 === 'Cr' && allele2 === 'Ch') || (allele1 === 'Ch' && allele2 === 'Cr')) return 'CrCh';
     if ((allele1 === 'prl' && allele2 === 'Ch') || (allele1 === 'Ch' && allele2 === 'prl')) return 'prlCh';
     if ((allele1 === 'Tp' && allele2 === 'Ch') || (allele1 === 'Ch' && allele2 === 'Tp')) return 'TpCh';
-    if ((allele1 === 'Cr' && allele2 === 'er') || (allele1 === 'er' && allele2 === 'Cr')) return 'Crer';
-    if ((allele1 === 'Tp' && allele2 === 'er') || (allele1 === 'er' && allele2 === 'Tp')) return 'Tper';
-    if ((allele1 === 'prl' && allele2 === 'er') || (allele1 === 'er' && allele2 === 'prl')) return 'prler';
-    
+    // Note: Cr/Tp/prl/Ch cannot combine with er because they're on separate loci
+    // Removed: Crer, Tper, prler (these should never occur in valid genotypes)
+
     // For n + allele combinations
     if (allele1 === 'n') return 'n' + allele2;
     if (allele2 === 'n') return 'n' + allele1;
@@ -508,71 +514,55 @@ function inheritBaseCoat(parent1Genes, parent2Genes) {
 function generateFoal(parent1, parent2, variation) {
     const p1 = parseGenotype(parent1.genotype);
     const p2 = parseGenotype(parent2.genotype);
-    
+
     const foalGenes = [];
     const foalAnomalies = [];
-    
-    // Base coat
+
+    // Base coat - use proper Mendelian inheritance
     const [eGene, aGene] = inheritBaseCoat(p1.genes, p2.genes);
     foalGenes.push(eGene, aGene);
-    
-    // Dilutions - handle all possible combinations
-    const dilutionGenes = new Set();
-    
-    [...p1.genes, ...p2.genes].forEach(gene => {
-        if (gene.includes('Cr') || gene.includes('Tp') || gene.includes('prl') || 
-            gene.includes('er') || gene.includes('Ch')) {
-            
-            const alleles = getGeneAlleles(gene);
-            alleles.forEach(a => {
-                if (Math.random() < 0.5 && a !== 'n') {
-                    dilutionGenes.add(a);
-                }
-            });
-        }
-    });
-    
-    // Combine dilutions
-    if (dilutionGenes.size > 0) {
-        const dilutionArray = Array.from(dilutionGenes);
-        if (dilutionArray.length === 1) {
-            const allele = dilutionArray[0];
-            if (Math.random() < 0.3) {
-                foalGenes.push(allele + allele);
-            } else {
-                foalGenes.push('n' + allele);
+
+    // Helper to find gene in parent's genes
+    function findGene(genes, pattern) {
+        return genes.find(g => {
+            if (typeof pattern === 'string') {
+                return g.includes(pattern);
             }
-        } else if (dilutionArray.length === 2) {
-            foalGenes.push(combineAlleles(dilutionArray[0], dilutionArray[1]));
-        } else if (dilutionArray.length >= 3) {
-            // Complex dilution - limit to 3 max
-            foalGenes.push(dilutionArray.slice(0, 3).join(''));
+            return pattern.test(g);
+        });
+    }
+
+    // Dilutions - TWO separate loci:
+    // Locus 1: Cr, Tp, prl, Ch are allelic (share same locus)
+    // Locus 2: er (Ether) is separate
+    const p1Dilution1 = findGene(p1.genes, /Cr|Tp|prl|Ch/);
+    const p2Dilution1 = findGene(p2.genes, /Cr|Tp|prl|Ch/);
+
+    if (p1Dilution1 || p2Dilution1) {
+        const dilutionGene = inheritGene(p1Dilution1 || 'nn', p2Dilution1 || 'nn');
+        if (dilutionGene !== 'nn' && dilutionGene !== 'n') {
+            foalGenes.push(dilutionGene);
         }
     }
-    
-    // White markings (excluding Lp and patn - handled separately)
-    [...p1.genes, ...p2.genes].forEach(gene => {
-        if (gene.match(/^n[A-Z]/) || gene.match(/^[A-Z]{2}/) || gene === 'fefe') {
 
-            if (!gene.match(/^(E|A|Cr|Tp|prl|er|Ch|[nN]?[fsp])/) &&
-                !gene.includes('Lp') && !gene.includes('patn')) {
-                if (Math.random() < 0.5) {
-                    if (!foalGenes.includes(gene)) {
-                        foalGenes.push(gene);
-                    }
-                }
-            }
+    // Ether locus (separate from other dilutions)
+    const p1Ether = findGene(p1.genes, /\ber/);
+    const p2Ether = findGene(p2.genes, /\ber/);
+
+    if (p1Ether || p2Ether) {
+        const etherGene = inheritGene(p1Ether || 'nn', p2Ether || 'nn');
+        if (etherGene !== 'nn' && etherGene !== 'n') {
+            foalGenes.push(etherGene);
         }
-    });
-    
+    }
+
     // Leopard complex - inherit Lp and patn genes properly
-    const p1Lp = p1.genes.find(g => g.includes('Lp'));
-    const p2Lp = p2.genes.find(g => g.includes('Lp'));
-    const p1patn = p1.genes.find(g => g.includes('patn'));
-    const p2patn = p2.genes.find(g => g.includes('patn'));
+    const p1Lp = findGene(p1.genes, 'Lp');
+    const p2Lp = findGene(p2.genes, 'Lp');
+    const p1patn = findGene(p1.genes, 'patn');
+    const p2patn = findGene(p2.genes, 'patn');
 
     if (p1Lp || p2Lp) {
-        // Use Mendelian inheritance for Lp
         const lpGene = inheritGene(p1Lp || 'nn', p2Lp || 'nn');
         if (lpGene !== 'nn' && lpGene !== 'n') {
             foalGenes.push(lpGene);
@@ -580,23 +570,55 @@ function generateFoal(parent1, parent2, variation) {
     }
 
     if (p1patn || p2patn) {
-        // Use Mendelian inheritance for patn (recessive)
         const patnGene = inheritGene(p1patn || 'nn', p2patn || 'nn');
         if (patnGene !== 'nn' && patnGene !== 'n') {
             foalGenes.push(patnGene);
         }
     }
-    
-    // Modifiers
-    const modifierGenes = ['nD', 'nP', 'nSty', 'nG', 'ff', 'nZ', 'nLu', 'spsp', 
-                          'nTd', 'nGl', 'nV', 'nOp', 'nPr', 'sfsf'];
-    
-    [...p1.genes, ...p2.genes].forEach(gene => {
-        if (modifierGenes.includes(gene)) {
-            if (Math.random() < 0.5) {
-                if (!foalGenes.includes(gene)) {
-                    foalGenes.push(gene);
-                }
+
+    // White markings - use proper Mendelian inheritance for each
+    const markingGeneNames = ['T', 'O', 'Spl', 'R', 'Sb', 'Gi', 'Co', 'Bl', 'W',
+                              'Rb', 'Fl', 'Hq', 'Fs', 'Sh', 'Os', 'Cu', 'Cw', 'Sf', 'B'];
+
+    markingGeneNames.forEach(name => {
+        const p1Gene = findGene(p1.genes, new RegExp(`^(n${name}|${name}${name})$`));
+        const p2Gene = findGene(p2.genes, new RegExp(`^(n${name}|${name}${name})$`));
+
+        if (p1Gene || p2Gene) {
+            const inherited = inheritGene(p1Gene || 'nn', p2Gene || 'nn');
+            if (inherited !== 'nn' && inherited !== 'n' && !foalGenes.includes(inherited)) {
+                foalGenes.push(inherited);
+            }
+        }
+    });
+
+    // Modifiers - use proper Mendelian inheritance
+    const modifierGeneNames = [
+        { pattern: /^(nD|DD)$/, name: 'D' },
+        { pattern: /^nP$/, name: 'P' },
+        { pattern: /^nSty$/, name: 'Sty' },
+        { pattern: /^nG$/, name: 'G' },
+        { pattern: /^(nf|ff)$/, name: 'f' },
+        { pattern: /^nZ$/, name: 'Z' },
+        { pattern: /^nLu$/, name: 'Lu' },
+        { pattern: /^(nsp|spsp|Lusp)$/, name: 'sp' },
+        { pattern: /^nTd$/, name: 'Td' },
+        { pattern: /^nGl$/, name: 'Gl' },
+        { pattern: /^nV$/, name: 'V' },
+        { pattern: /^(nOp|PrOp)$/, name: 'Op' },
+        { pattern: /^nPr$/, name: 'Pr' },
+        { pattern: /^(nsf|sfsf)$/, name: 'sf' },
+        { pattern: /^(nfe|fefe)$/, name: 'fe' }
+    ];
+
+    modifierGeneNames.forEach(({ pattern, name }) => {
+        const p1Gene = findGene(p1.genes, pattern);
+        const p2Gene = findGene(p2.genes, pattern);
+
+        if (p1Gene || p2Gene) {
+            const inherited = inheritGene(p1Gene || 'nn', p2Gene || 'nn');
+            if (inherited !== 'nn' && inherited !== 'n' && !foalGenes.includes(inherited)) {
+                foalGenes.push(inherited);
             }
         }
     });
