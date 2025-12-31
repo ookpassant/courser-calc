@@ -170,18 +170,18 @@ const SPECIAL_COAT_NAMES = {
 };
 
 const DILUTION_NAMES = {
+    // Locus 1: Cr, Tp, prl
     'nCr': 'Cream', 'Cr': 'Cream', 'CrCr': 'Double Cream',
     'nTp': 'Tapestry', 'Tp': 'Tapestry', 'TpTp': 'Tapestry',
     'nprl': 'Pearl', 'prl': 'Pearl', 'prlprl': 'Pearl',
+    'Crprl': 'Cream Pearl',
+    'TpCr': 'Tapestry Cream',
+    'Tpprl': 'Tapestry Pearl',
+
+    // Locus 2: Ch, er
     'nCh': 'Champagne', 'Ch': 'Champagne', 'ChCh': 'Champagne',
     'ner': 'Ether', 'er': 'Ether', 'erer': 'Ether',
-    'Crprl': 'Cream Pearl', 'TpCr': 'Tapestry Cream',
-    'Tpprl': 'Tapestry Pearl', 'CrCh': 'Cream Champagne',
-    'prlCh': 'Pearl Champagne', 'TpCh': 'Tapestry Champagne',
-    'Crer': 'Cream Ether', 'Tper': 'Tapestry Ether', 'prler': 'Pearl Ether',
-    'CrprlCh': 'Cream Pearl Champagne', 'Crprler': 'Cream Pearl Ether',
-    'TpCrer': 'Tapestry Cream Ether', 'TpprlCh': 'Tapestry Pearl Champagne',
-    'Tpprler': 'Tapestry Pearl Ether', 'TpCrCh': 'Tapestry Cream Champagne'
+    'Cher': 'Champagne Ether'
 };
 
 const MODIFIER_NAMES = {
@@ -267,38 +267,18 @@ function genotypeToPhenotype(genoString) {
         baseCoat = COAT_COLORS[key] || 'Unknown';
     }
 
-    // Find dilutions - check for complex combinations first
-    const genoLower = genoString.toLowerCase();
-    let foundDilution = false;
+    // Find dilutions from both loci
+    // Locus 1: Cr, Tp, prl (can form: Crprl, Tpprl, TpCr, or hetero/homo)
+    // Locus 2: Ch, er (can form: Cher, or hetero/homo)
 
-    // Check for triple dilutions first
-    if (genoLower.includes('crprlch') || genoLower.includes('crchprl') || genoLower.includes('prlcrch')) {
-        dilutions.push('Cream Pearl Champagne');
-        foundDilution = true;
-    } else if (genoLower.includes('crprler') || genoLower.includes('prlcrer')) {
-        dilutions.push('Cream Pearl Ether');
-        foundDilution = true;
-    } else if (genoLower.includes('tpcrer') || genoLower.includes('tperCr')) {
-        dilutions.push('Tapestry Cream Ether');
-        foundDilution = true;
-    } else if (genoLower.includes('tpprlch') || genoLower.includes('tpchprl')) {
-        dilutions.push('Tapestry Pearl Champagne');
-        foundDilution = true;
-    } else if (genoLower.includes('tpprler') || genoLower.includes('tperprl')) {
-        dilutions.push('Tapestry Pearl Ether');
-        foundDilution = true;
-    } else if (genoLower.includes('tpcrch') || genoLower.includes('tpchcr')) {
-        dilutions.push('Tapestry Cream Champagne');
-        foundDilution = true;
+    const locus1Gene = genes.find(g => /Cr|Tp|prl/.test(g) && !/(Ch|er)/.test(g));
+    const locus2Gene = genes.find(g => /Ch|er/.test(g) && !/(Cr|Tp|prl)/.test(g));
+
+    if (locus1Gene && DILUTION_NAMES[locus1Gene]) {
+        dilutions.push(DILUTION_NAMES[locus1Gene]);
     }
-
-    // Check for double dilutions if no triple found
-    if (!foundDilution) {
-        genes.forEach(gene => {
-            if (DILUTION_NAMES[gene]) {
-                dilutions.push(DILUTION_NAMES[gene]);
-            }
-        });
+    if (locus2Gene && DILUTION_NAMES[locus2Gene]) {
+        dilutions.push(DILUTION_NAMES[locus2Gene]);
     }
 
     // Build special coat color name
@@ -404,19 +384,13 @@ function getGeneAlleles(gene) {
     if (gene.includes('Tp') && gene.includes('Cr')) {
         return ['Tp', 'Cr'];  // TpCr
     }
-    if (gene.includes('prl') && gene.includes('Ch')) {
-        return ['prl', 'Ch'];  // prlCh
+
+    // Ch and er are allelic (share a locus, separate from Cr/Tp/prl)
+    // So CrCh, TpCh, prlCh don't exist - they'd be separate genes like "nCr nCh"
+    if (gene.includes('Ch') && gene.includes('er')) {
+        return ['Ch', 'er'];  // Cher
     }
-    if (gene.includes('Cr') && gene.includes('Ch')) {
-        return ['Cr', 'Ch'];  // CrCh
-    }
-    if (gene.includes('Tp') && gene.includes('Ch')) {
-        return ['Tp', 'Ch'];  // TpCh
-    }
-    // Note: er (Ether) is on a separate locus from Cr/Tp/prl/Ch
-    // So Crer, Tper, prler don't exist as compound genes
-    // They appear as separate genes: "nCr ner", "nTp erer", etc.
-    
+
     // Homozygous versions
     if (gene === 'CrCr') return ['Cr', 'Cr'];
     if (gene === 'TpTp') return ['Tp', 'Tp'];
@@ -484,11 +458,13 @@ function combineAlleles(allele1, allele2) {
     if ((allele1 === 'Cr' && allele2 === 'prl') || (allele1 === 'prl' && allele2 === 'Cr')) return 'Crprl';
     if ((allele1 === 'Tp' && allele2 === 'prl') || (allele1 === 'prl' && allele2 === 'Tp')) return 'Tpprl';
     if ((allele1 === 'Tp' && allele2 === 'Cr') || (allele1 === 'Cr' && allele2 === 'Tp')) return 'TpCr';
-    if ((allele1 === 'Cr' && allele2 === 'Ch') || (allele1 === 'Ch' && allele2 === 'Cr')) return 'CrCh';
-    if ((allele1 === 'prl' && allele2 === 'Ch') || (allele1 === 'Ch' && allele2 === 'prl')) return 'prlCh';
-    if ((allele1 === 'Tp' && allele2 === 'Ch') || (allele1 === 'Ch' && allele2 === 'Tp')) return 'TpCh';
-    // Note: Cr/Tp/prl/Ch cannot combine with er because they're on separate loci
-    // Removed: Crer, Tper, prler (these should never occur in valid genotypes)
+
+    // Ch and er are allelic (different locus from Cr/Tp/prl)
+    if ((allele1 === 'Ch' && allele2 === 'er') || (allele1 === 'er' && allele2 === 'Ch')) return 'Cher';
+
+    // Note: Cr/Tp/prl are on locus 1, Ch/er are on locus 2
+    // So CrCh, TpCh, prlCh, Crer, Tper, prler don't exist as compounds
+    // They appear as separate genes: "nCr nCh", "Tpprl erer", etc.
 
     // For n + allele combinations
     if (allele1 === 'n') return 'n' + allele2;
@@ -533,10 +509,10 @@ function generateFoal(parent1, parent2, variation) {
     }
 
     // Dilutions - TWO separate loci:
-    // Locus 1: Cr, Tp, prl, Ch are allelic (share same locus)
-    // Locus 2: er (Ether) is separate
-    const p1Dilution1 = findGene(p1.genes, /Cr|Tp|prl|Ch/);
-    const p2Dilution1 = findGene(p2.genes, /Cr|Tp|prl|Ch/);
+    // Locus 1: Cr, Tp, prl are allelic (can form compounds: Crprl, Tpprl, TpCr)
+    // Locus 2: Ch, er are allelic (can form compound: Cher)
+    const p1Dilution1 = findGene(p1.genes, /Cr|Tp|prl/);
+    const p2Dilution1 = findGene(p2.genes, /Cr|Tp|prl/);
 
     if (p1Dilution1 || p2Dilution1) {
         const dilutionGene = inheritGene(p1Dilution1 || 'nn', p2Dilution1 || 'nn');
@@ -545,14 +521,14 @@ function generateFoal(parent1, parent2, variation) {
         }
     }
 
-    // Ether locus (separate from other dilutions)
-    const p1Ether = findGene(p1.genes, /\ber/);
-    const p2Ether = findGene(p2.genes, /\ber/);
+    // Champagne/Ether locus (separate from Cr/Tp/prl)
+    const p1ChEr = findGene(p1.genes, /Ch|er/);
+    const p2ChEr = findGene(p2.genes, /Ch|er/);
 
-    if (p1Ether || p2Ether) {
-        const etherGene = inheritGene(p1Ether || 'nn', p2Ether || 'nn');
-        if (etherGene !== 'nn' && etherGene !== 'n') {
-            foalGenes.push(etherGene);
+    if (p1ChEr || p2ChEr) {
+        const chErGene = inheritGene(p1ChEr || 'nn', p2ChEr || 'nn');
+        if (chErGene !== 'nn' && chErGene !== 'n') {
+            foalGenes.push(chErGene);
         }
     }
 
