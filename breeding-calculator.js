@@ -570,25 +570,26 @@ function displayFoals(foals) {
         let chimeraSection = '';
         if (hasChimera) {
             const chimeraPossibilities = generateChimeraPossibilities(foal.genotype, parent1Geno, parent2Geno);
-            const limitedPossibilities = chimeraPossibilities.slice(0, 3); // Show first 3
+
+            // Show variety - get base coat options (first category)
+            const baseDilutionOptions = chimeraPossibilities.filter(p => p.category === 'Base + Dilution');
+            const displayOptions = baseDilutionOptions.slice(0, 5); // Show first 5 base+dilution combos
 
             chimeraSection = `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #543954;">
-                    <strong style="color: #c084fc; display: block; margin-bottom: 10px;">🎨 Chimera Possibilities:</strong>
-                    ${limitedPossibilities.map((poss, i) => `
+                    <strong style="color: #c084fc; display: block; margin-bottom: 10px;">🎨 Chimera Base Coat Options:</strong>
+                    ${displayOptions.map((poss, i) => `
                         <div style="background: #1d181d; padding: 10px; margin-bottom: 8px; border-left: 3px solid #a855f7;">
-                            <div style="color: #b8a89f; font-size: 0.85em; margin-bottom: 4px;">Option ${i + 1}:</div>
-                            <div style="color: #d4af37; font-size: 0.8em;">${poss.phenotype}</div>
+                            <div style="color: #d4af37; font-size: 0.85em;">${poss.phenotype}</div>
+                            <div style="color: #b8a89f; font-size: 0.75em; margin-top: 3px; font-family: 'Courier New', monospace;">${poss.genotype}</div>
                         </div>
                     `).join('')}
-                    ${chimeraPossibilities.length > 3 ? `
-                        <div style="color: #b8a89f; font-size: 0.85em; font-style: italic; margin-top: 8px;">
-                            +${chimeraPossibilities.length - 3} more possibilities.
-                        </div>
-                    ` : ''}
+                    <div style="color: #b8a89f; font-size: 0.85em; font-style: italic; margin-top: 8px;">
+                        ${chimeraPossibilities.length} total possibilities including markings & modifiers
+                    </div>
                     <button onclick='fillChimeraCalculator("${foal.genotype.replace(/'/g, "&#39;")}", "${parent1Geno.replace(/'/g, "&#39;")}", "${parent2Geno.replace(/'/g, "&#39;")}")'
                             style="margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #6b4f6b 0%, #543954 100%); color: #c084fc; border: 2px solid #a855f7; cursor: pointer; font-weight: 600; width: 100%; font-size: 0.85em;">
-                        View All Chimera Options
+                        View All ${chimeraPossibilities.length} Chimera Options
                     </button>
                 </div>
             `;
@@ -878,139 +879,169 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
     const allParentGenes = [...p1.genes, ...p2.genes];
     const allParentAnomalies = [...p1.anomalies, ...p2.anomalies];
 
-    // Generate possible Chimera coat variations
-    const possibilities = [];
+    // Get all possible alleles from parents
+    const eAlleles = new Set();
+    const aAlleles = new Set();
 
-    // Generate 8 different Chimera possibilities
-    for (let i = 0; i < 8; i++) {
-        const chimeraGenes = [];
-
-        // Base coat variations (E and A genes)
-        const eOptions = [];
-        const aOptions = [];
-
-        allParentGenes.forEach(gene => {
-            if (gene.match(/^[Ee][Ee]?$/)) {
-                const alleles = getGeneAlleles(gene);
-                alleles.forEach(a => eOptions.push(a));
-            }
-            if (gene.match(/^[Aa][Aa]?$/)) {
-                const alleles = getGeneAlleles(gene);
-                alleles.forEach(a => aOptions.push(a));
-            }
-        });
-
-        // Create unique E and A combinations
-        if (eOptions.length > 0 && aOptions.length > 0) {
-            const e1 = eOptions[Math.floor(Math.random() * eOptions.length)];
-            const e2 = eOptions[Math.floor(Math.random() * eOptions.length)];
-            const a1 = aOptions[Math.floor(Math.random() * aOptions.length)];
-            const a2 = aOptions[Math.floor(Math.random() * aOptions.length)];
-
-            chimeraGenes.push(combineAlleles(e1, e2));
-            chimeraGenes.push(combineAlleles(a1, a2));
+    allParentGenes.forEach(gene => {
+        if (gene.match(/^[Ee][Ee]?$/)) {
+            const alleles = getGeneAlleles(gene);
+            alleles.forEach(a => eAlleles.add(a));
         }
-
-        // Dilutions - can have any combination from parents
-        const dilutionOptions = new Set();
-        allParentGenes.forEach(gene => {
-            if (gene.includes('Cr') || gene.includes('Tp') || gene.includes('prl') ||
-                gene.includes('er') || gene.includes('Ch')) {
-                const alleles = getGeneAlleles(gene);
-                alleles.forEach(a => {
-                    if (a !== 'n') dilutionOptions.add(a);
-                });
-            }
-        });
-
-        // Randomly select dilutions
-        const dilutionArray = Array.from(dilutionOptions);
-        if (dilutionArray.length > 0 && Math.random() < 0.7) {
-            const numDilutions = Math.min(Math.floor(Math.random() * 3) + 1, dilutionArray.length);
-            const selectedDilutions = [];
-
-            for (let j = 0; j < numDilutions; j++) {
-                const dilution = dilutionArray[Math.floor(Math.random() * dilutionArray.length)];
-                if (!selectedDilutions.includes(dilution)) {
-                    selectedDilutions.push(dilution);
-                }
-            }
-
-            if (selectedDilutions.length === 1) {
-                chimeraGenes.push(Math.random() < 0.3 ? selectedDilutions[0] + selectedDilutions[0] : 'n' + selectedDilutions[0]);
-            } else if (selectedDilutions.length === 2) {
-                chimeraGenes.push(combineAlleles(selectedDilutions[0], selectedDilutions[1]));
-            } else {
-                chimeraGenes.push(selectedDilutions.join(''));
-            }
-        }
-
-        // White markings - can have different ones than main coat
-        const whiteMarkingOptions = [];
-        allParentGenes.forEach(gene => {
-            if (WHITE_MARKING_NAMES[gene]) {
-                whiteMarkingOptions.push(gene);
-            }
-        });
-
-        // Randomly select some white markings
-        whiteMarkingOptions.forEach(marking => {
-            if (Math.random() < 0.4) {
-                chimeraGenes.push(marking);
-            }
-        });
-
-        // Modifiers - can differ from main coat
-        const modifierOptions = [];
-        allParentGenes.forEach(gene => {
-            if (MODIFIER_NAMES[gene]) {
-                modifierOptions.push(gene);
-            }
-        });
-
-        modifierOptions.forEach(modifier => {
-            if (Math.random() < 0.4) {
-                chimeraGenes.push(modifier);
-            }
-        });
-
-        // Anomalies that parents carry can appear (excluding Chimera itself)
-        const chimeraAnomalies = [];
-        allParentAnomalies.forEach(anomaly => {
-            if (anomaly !== 'Chimera' && Math.random() < 0.3) {
-                if (!chimeraAnomalies.includes(anomaly)) {
-                    chimeraAnomalies.push(anomaly);
-                }
-            }
-        });
-
-        const chimeraGenotype = chimeraGenes.join(' ') +
-            (chimeraAnomalies.length > 0 ? ' + ' + chimeraAnomalies.join(', ') : '');
-
-        const chimeraPhenotype = genotypeToPhenotype(chimeraGenotype);
-
-        // Only add if it's different from the main foal coat
-        const foalPhenotype = genotypeToPhenotype(foalGenotype);
-        if (chimeraPhenotype !== foalPhenotype) {
-            possibilities.push({
-                genotype: chimeraGenotype,
-                phenotype: chimeraPhenotype
-            });
-        }
-    }
-
-    // Remove duplicates
-    const uniquePossibilities = [];
-    const seenPhenotypes = new Set();
-
-    possibilities.forEach(poss => {
-        if (!seenPhenotypes.has(poss.phenotype)) {
-            seenPhenotypes.add(poss.phenotype);
-            uniquePossibilities.push(poss);
+        if (gene.match(/^[Aa][Aa]?$/)) {
+            const alleles = getGeneAlleles(gene);
+            alleles.forEach(a => aAlleles.add(a));
         }
     });
 
-    return uniquePossibilities;
+    const eArray = Array.from(eAlleles);
+    const aArray = Array.from(aAlleles);
+
+    // Generate all possible base coat combinations
+    const baseCoatCombinations = [];
+    for (let i = 0; i < eArray.length; i++) {
+        for (let j = i; j < eArray.length; j++) {
+            for (let k = 0; k < aArray.length; k++) {
+                for (let l = k; l < aArray.length; l++) {
+                    const eGene = combineAlleles(eArray[i], eArray[j]);
+                    const aGene = combineAlleles(aArray[k], aArray[l]);
+                    const baseCoatKey = `${eGene}_${aGene}`;
+
+                    // Only add unique combinations
+                    if (!baseCoatCombinations.some(bc => bc.eGene === eGene && bc.aGene === aGene)) {
+                        baseCoatCombinations.push({
+                            eGene: eGene,
+                            aGene: aGene,
+                            baseCoat: COAT_COLORS[baseCoatKey] || 'Unknown'
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // Get all available dilutions from parents
+    const dilutionAlleles = new Set();
+    allParentGenes.forEach(gene => {
+        if (gene.includes('Cr') || gene.includes('Tp') || gene.includes('prl') ||
+            gene.includes('er') || gene.includes('Ch')) {
+            const alleles = getGeneAlleles(gene);
+            alleles.forEach(a => {
+                if (a !== 'n') dilutionAlleles.add(a);
+            });
+        }
+    });
+
+    // Get all available white markings
+    const whiteMarkingOptions = [];
+    allParentGenes.forEach(gene => {
+        if (WHITE_MARKING_NAMES[gene]) {
+            if (!whiteMarkingOptions.includes(gene)) {
+                whiteMarkingOptions.push(gene);
+            }
+        }
+    });
+
+    // Get all available modifiers
+    const modifierOptions = [];
+    allParentGenes.forEach(gene => {
+        if (MODIFIER_NAMES[gene]) {
+            if (!modifierOptions.includes(gene)) {
+                modifierOptions.push(gene);
+            }
+        }
+    });
+
+    // Get parent anomalies (excluding Chimera)
+    const availableAnomalies = allParentAnomalies.filter(a => a !== 'Chimera');
+
+    // Generate all dilution combinations (including none, single, and compound)
+    const dilutionCombinations = [null]; // Start with no dilution
+
+    const dilutionArray = Array.from(dilutionAlleles);
+
+    // Single dilutions (heterozygous and homozygous)
+    dilutionArray.forEach(dilution => {
+        dilutionCombinations.push('n' + dilution); // Heterozygous
+        dilutionCombinations.push(dilution + dilution); // Homozygous
+    });
+
+    // Compound heterozygous dilutions
+    for (let i = 0; i < dilutionArray.length; i++) {
+        for (let j = i + 1; j < dilutionArray.length; j++) {
+            dilutionCombinations.push(combineAlleles(dilutionArray[i], dilutionArray[j]));
+        }
+    }
+
+    const possibilities = [];
+    const foalPhenotype = genotypeToPhenotype(foalGenotype);
+    const seenGenotypes = new Set();
+
+    // Generate possibilities for each base coat
+    baseCoatCombinations.forEach(baseCoat => {
+        // For each dilution option
+        dilutionCombinations.forEach(dilution => {
+            // Create a base genotype with this base coat and dilution
+            const baseGenes = [baseCoat.eGene, baseCoat.aGene];
+            if (dilution) {
+                baseGenes.push(dilution);
+            }
+
+            // Add this as one possibility (base coat with dilution only)
+            const simpleGeno = baseGenes.join(' ');
+            const simplePhenotype = genotypeToPhenotype(simpleGeno);
+
+            if (simplePhenotype !== foalPhenotype && !seenGenotypes.has(simpleGeno)) {
+                seenGenotypes.add(simpleGeno);
+                possibilities.push({
+                    genotype: simpleGeno,
+                    phenotype: simplePhenotype,
+                    category: 'Base + Dilution'
+                });
+            }
+
+            // Add variations with white markings
+            whiteMarkingOptions.forEach(marking => {
+                const genoWithMarking = [...baseGenes, marking].join(' ');
+                const phenoWithMarking = genotypeToPhenotype(genoWithMarking);
+
+                if (phenoWithMarking !== foalPhenotype && !seenGenotypes.has(genoWithMarking)) {
+                    seenGenotypes.add(genoWithMarking);
+                    possibilities.push({
+                        genotype: genoWithMarking,
+                        phenotype: phenoWithMarking,
+                        category: 'With Markings'
+                    });
+                }
+            });
+
+            // Add variations with modifiers
+            modifierOptions.forEach(modifier => {
+                const genoWithModifier = [...baseGenes, modifier].join(' ');
+                const phenoWithModifier = genotypeToPhenotype(genoWithModifier);
+
+                if (phenoWithModifier !== foalPhenotype && !seenGenotypes.has(genoWithModifier)) {
+                    seenGenotypes.add(genoWithModifier);
+                    possibilities.push({
+                        genotype: genoWithModifier,
+                        phenotype: phenoWithModifier,
+                        category: 'With Modifiers'
+                    });
+                }
+            });
+        });
+    });
+
+    // Sort by category and phenotype
+    possibilities.sort((a, b) => {
+        if (a.category !== b.category) {
+            const order = ['Base + Dilution', 'With Markings', 'With Modifiers'];
+            return order.indexOf(a.category) - order.indexOf(b.category);
+        }
+        return a.phenotype.localeCompare(b.phenotype);
+    });
+
+    return possibilities;
 }
 
 function fillChimeraCalculator(foalGeno, parent1Geno, parent2Geno) {
@@ -1069,33 +1100,55 @@ function displayChimeraPossibilities(foalGenotype, possibilities) {
     `;
     resultsContent.appendChild(mainCoatDiv);
 
-    // Display Chimera possibilities
+    // Display Chimera possibilities organized by category
     const chimeraHeader = document.createElement('h4');
     chimeraHeader.style.cssText = 'color: #d4af37; margin-bottom: 15px; font-size: 1.1em;';
-    chimeraHeader.textContent = `Possible Chimera Patch Coats (${possibilities.length} variations)`;
+    chimeraHeader.textContent = `All Possible Chimera Patch Coats (${possibilities.length} total variations)`;
     resultsContent.appendChild(chimeraHeader);
 
-    const grid = document.createElement('div');
-    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;';
+    // Group by category
+    const categories = {
+        'Base + Dilution': [],
+        'With Markings': [],
+        'With Modifiers': []
+    };
 
-    possibilities.forEach((poss, index) => {
-        const card = document.createElement('div');
-        card.style.cssText = 'background: #3a2f3a; padding: 20px; border: 2px solid #543954; border-left: 4px solid #a855f7;';
-        card.innerHTML = `
-            <h5 style="color: #c084fc; margin-bottom: 10px; font-size: 1em;">Chimera Option ${index + 1}</h5>
-            <div style="margin-bottom: 10px;">
-                <strong style="color: #b8a89f; font-size: 0.9em;">Phenotype:</strong>
-                <span style="color: #d4af37; display: block; margin-top: 5px; font-size: 0.9em;">${poss.phenotype}</span>
-            </div>
-            <div>
-                <strong style="color: #b8a89f; font-size: 0.9em;">Genotype:</strong>
-                <span style="color: #d4af37; font-family: 'Courier New', monospace; display: block; margin-top: 5px; background: #1d181d; padding: 8px; border: 1px solid #543954; font-size: 0.85em;">${poss.genotype}</span>
-            </div>
-        `;
-        grid.appendChild(card);
+    possibilities.forEach(poss => {
+        if (categories[poss.category]) {
+            categories[poss.category].push(poss);
+        }
     });
 
-    resultsContent.appendChild(grid);
+    // Display each category
+    Object.keys(categories).forEach(category => {
+        if (categories[category].length > 0) {
+            const categoryHeader = document.createElement('h5');
+            categoryHeader.style.cssText = 'color: #c084fc; margin-top: 25px; margin-bottom: 15px; font-size: 1em; border-bottom: 1px solid #543954; padding-bottom: 8px;';
+            categoryHeader.textContent = `${category} (${categories[category].length})`;
+            resultsContent.appendChild(categoryHeader);
+
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px;';
+
+            categories[category].forEach((poss, index) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background: #3a2f3a; padding: 15px; border: 2px solid #543954; border-left: 4px solid #a855f7;';
+                card.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong style="color: #b8a89f; font-size: 0.85em;">Phenotype:</strong>
+                        <span style="color: #d4af37; display: block; margin-top: 5px; font-size: 0.9em;">${poss.phenotype}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #b8a89f; font-size: 0.85em;">Genotype:</strong>
+                        <span style="color: #d4af37; font-family: 'Courier New', monospace; display: block; margin-top: 5px; background: #1d181d; padding: 8px; border: 1px solid #543954; font-size: 0.8em;">${poss.genotype}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            resultsContent.appendChild(grid);
+        }
+    });
 
     resultsContainer.style.display = 'block';
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
