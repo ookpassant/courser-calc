@@ -114,12 +114,49 @@ const SPECIAL_COAT_NAMES = {
     'Chestnut_Champagne': 'Gold Champagne',
 
     // Tapestry + Cream combinations
-    'Madder_Cream': 'Madder Buckskin',
-    'Woad_Cream': 'Woad Smoky Black',
-    'Weld_Cream': 'Weld Palomino',
     'Bay_Tapestry Cream': 'Madder Buckskin',
     'Black_Tapestry Cream': 'Woad Smoky Black',
-    'Chestnut_Tapestry Cream': 'Weld Palomino'
+    'Chestnut_Tapestry Cream': 'Weld Palomino',
+
+    // Tapestry Ether combinations
+    'Bay_Tapestry Ether': 'Madder Ether',
+    'Black_Tapestry Ether': 'Woad Ether',
+    'Chestnut_Tapestry Ether': 'Weld Ether',
+
+    // Pearl Ether combinations
+    'Bay_Pearl Ether': 'Bay Pearl Ether',
+    'Black_Pearl Ether': 'Black Pearl Ether',
+    'Chestnut_Pearl Ether': 'Gold Pearl Ether',
+
+    // Cream Pearl Champagne (triple dilution)
+    'Bay_Cream Pearl Champagne': 'Amber Cream Pearl Champagne',
+    'Black_Cream Pearl Champagne': 'Classic Cream Pearl Champagne',
+    'Chestnut_Cream Pearl Champagne': 'Gold Cream Pearl Champagne',
+
+    // Cream Pearl Ether (triple dilution)
+    'Bay_Cream Pearl Ether': 'Ombre Cream Pearl Ether',
+    'Black_Cream Pearl Ether': 'Classic Cream Pearl Ether',
+    'Chestnut_Cream Pearl Ether': 'Cold Cream Pearl Ether',
+
+    // Tapestry Cream Ether (triple dilution)
+    'Bay_Tapestry Cream Ether': 'Madder Cream Ether',
+    'Black_Tapestry Cream Ether': 'Woad Cream Ether',
+    'Chestnut_Tapestry Cream Ether': 'Weld Cream Ether',
+
+    // Tapestry Pearl Champagne (triple dilution)
+    'Bay_Tapestry Pearl Champagne': 'Tyrian Pearl Champagne',
+    'Black_Tapestry Pearl Champagne': 'Phthalo Pearl Champagne',
+    'Chestnut_Tapestry Pearl Champagne': 'Ochre Pearl Champagne',
+
+    // Tapestry Pearl Ether (triple dilution)
+    'Bay_Tapestry Pearl Ether': 'Tyrian Pearl Ether',
+    'Black_Tapestry Pearl Ether': 'Phthalo Pearl Ether',
+    'Chestnut_Tapestry Pearl Ether': 'Ochre Pearl Ether',
+
+    // Tapestry Cream Champagne (triple dilution)
+    'Bay_Tapestry Cream Champagne': 'Madder Cream Champagne',
+    'Black_Tapestry Cream Champagne': 'Woad Cream Champagne',
+    'Chestnut_Tapestry Cream Champagne': 'Weld Cream Champagne'
 };
 
 const DILUTION_NAMES = {
