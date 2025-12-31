@@ -133,9 +133,6 @@ const WHITE_MARKING_NAMES = {
     'nGi': 'Girdle',
     'nCo': 'Collar',
     'nBl': 'Blanched',
-    'nLp': 'Varnish Roan',
-    'LpLp': 'Varnish Roan',
-    'patn': 'Pattern', 'patnpatn': 'Pattern',
     'nW': 'Dominant White',
     'nRb': 'Rabicano',
     'nFl': 'False Leopard',
@@ -211,6 +208,34 @@ function genotypeToPhenotype(genoString) {
             whiteMarkings.push(WHITE_MARKING_NAMES[gene]);
         }
     });
+
+    // Check for Leopard Complex patterns (Lp + patn combinations)
+    const lpGene = genes.find(g => g === 'nLp' || g === 'LpLp');
+    const patnGene = genes.find(g => g === 'patn' || g === 'patnpatn');
+
+    if (lpGene) {
+        const isHomozygousLp = lpGene === 'LpLp';
+        const patnStatus = patnGene ? (patnGene === 'patnpatn' ? 'homozygous' : 'heterozygous') : 'none';
+
+        let leopardPattern = '';
+        if (isHomozygousLp && patnStatus === 'homozygous') {
+            leopardPattern = 'Fewspot';
+        } else if (isHomozygousLp && patnStatus === 'heterozygous') {
+            leopardPattern = 'Snowcap';
+        } else if (isHomozygousLp && patnStatus === 'none') {
+            leopardPattern = 'Varnish Roan';
+        } else if (!isHomozygousLp && patnStatus === 'homozygous') {
+            leopardPattern = 'Leopard';
+        } else if (!isHomozygousLp && patnStatus === 'heterozygous') {
+            leopardPattern = 'Blanket';
+        } else if (!isHomozygousLp && patnStatus === 'none') {
+            leopardPattern = 'Snowflake';
+        }
+
+        if (leopardPattern) {
+            whiteMarkings.push(leopardPattern);
+        }
+    }
 
     // Find modifiers
     genes.forEach(gene => {
@@ -1021,14 +1046,6 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
         if (WHITE_MARKING_NAMES[gene]) {
             const name = WHITE_MARKING_NAMES[gene];
 
-            // Check Pattern gene (recessive)
-            if (gene === 'patn' || gene === 'patnpatn') {
-                if (parent1Alleles.has('patn') && parent2Alleles.has('patn')) {
-                    whiteMarkings.add(name);
-                }
-                return;
-            }
-
             // Check Filigree (recessive)
             if (gene === 'nfe' || gene === 'fefe') {
                 if (parent1Alleles.has('fe') && parent2Alleles.has('fe')) {
@@ -1041,6 +1058,50 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
             whiteMarkings.add(name);
         }
     });
+
+    // Generate Leopard Complex patterns from Lp and patn combinations
+    // Check if we can make nLp (need at least one parent with Lp)
+    const canMakeHetLp = (parent1Alleles.has('Lp') || parent2Alleles.has('Lp'));
+
+    // Check if we can make LpLp (need both parents with Lp)
+    const canMakeHomLp = parent1Alleles.has('Lp') && parent2Alleles.has('Lp');
+
+    // Check if patn can be inherited (both parents must have it for it to show as homozygous)
+    const canShowPatn = parent1Alleles.has('patn') && parent2Alleles.has('patn');
+
+    // Generate all possible Leopard Complex patterns (only if at least one parent has Lp)
+    if (canMakeHetLp) {
+        const leopardPatterns = new Set();
+
+        // Patterns WITH patn (only if both parents carry patn)
+        if (canMakeHetLp && canShowPatn) {
+            // nLp patnpatn = Leopard
+            leopardPatterns.add('Leopard');
+            // nLp patn = Blanket
+            leopardPatterns.add('Blanket');
+        }
+
+        if (canMakeHomLp && canShowPatn) {
+            // LpLp patnpatn = Fewspot
+            leopardPatterns.add('Fewspot');
+            // LpLp patn = Snowcap
+            leopardPatterns.add('Snowcap');
+        }
+
+        // Patterns WITHOUT patn (always possible - patch might not inherit patn)
+        if (canMakeHetLp) {
+            // nLp (no patn) = Snowflake
+            leopardPatterns.add('Snowflake');
+        }
+
+        if (canMakeHomLp) {
+            // LpLp (no patn) = Varnish Roan
+            leopardPatterns.add('Varnish Roan');
+        }
+
+        // Add all possible patterns to white markings
+        leopardPatterns.forEach(pattern => whiteMarkings.add(pattern));
+    }
 
     // Get parent anomalies (excluding Chimera)
     const anomalies = new Set(allParentAnomalies.filter(a => a !== 'Chimera'));
