@@ -87,11 +87,11 @@ const COAT_COLORS = {
 };
 
 const DILUTION_NAMES = {
-    'Cr': 'Cream', 'CrCr': 'Double Cream',
-    'Tp': 'Tapestry', 'TpTp': 'Tapestry',
-    'prl': 'Pearl', 'prlprl': 'Pearl',
-    'Ch': 'Champagne', 'ChCh': 'Champagne',
-    'er': 'Ether', 'erer': 'Ether',
+    'nCr': 'Cream', 'Cr': 'Cream', 'CrCr': 'Double Cream',
+    'nTp': 'Tapestry', 'Tp': 'Tapestry', 'TpTp': 'Tapestry',
+    'nprl': 'Pearl', 'prl': 'Pearl', 'prlprl': 'Pearl',
+    'nCh': 'Champagne', 'Ch': 'Champagne', 'ChCh': 'Champagne',
+    'ner': 'Ether', 'er': 'Ether', 'erer': 'Ether',
     'Crprl': 'Cream Pearl', 'TpCr': 'Tapestry Cream',
     'Tpprl': 'Tapestry Pearl', 'CrCh': 'Cream Champagne',
     'prlCh': 'Pearl Champagne', 'TpCh': 'Tapestry Champagne',
