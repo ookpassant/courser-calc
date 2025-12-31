@@ -96,7 +96,7 @@ See `sample_horses.csv` for a complete example.
 
 The calculator recognizes these traits:
 - **Coat Colors**: Amber Champagne, Gold Champagne, Classic Champagne, Cream, Pearl, Cream Pearl, Tapestry, Ether, Perlino, Buckskin
-- **White Markings**: Fewspot, Leopard, Blanket, Varnish Roan, Tobiano, Overo, Splash, Roan, Sabino, Shroud, Ossuary, Filigree, Harlequin
+- **White Markings**: Leopard Complex (Fewspot, Snowcap, Varnish Roan, Leopard, Blanket, Snowflake), Tobiano, Overo, Splash, Roan, Sabino, Shroud, Ossuary, Filigree, Harlequin
 - **Modifiers**: Starfield, Gilt, Tabard, Opal, Prism, Gray, Dun, Illuminated, Sepulchered
 
 ## Example Genotypes

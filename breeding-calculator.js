@@ -437,12 +437,12 @@ function generateFoal(parent1, parent2, variation) {
         }
     }
     
-    // White markings
+    // White markings (excluding Lp and patn - handled separately)
     [...p1.genes, ...p2.genes].forEach(gene => {
-        if (gene.match(/^n[A-Z]/) || gene.match(/^[A-Z]{2}/) || gene === 'fefe' || 
-            gene.includes('Lp') || gene.includes('patn')) {
-            
-            if (!gene.match(/^(E|A|Cr|Tp|prl|er|Ch|[nN]?[fsp])/)) {
+        if (gene.match(/^n[A-Z]/) || gene.match(/^[A-Z]{2}/) || gene === 'fefe') {
+
+            if (!gene.match(/^(E|A|Cr|Tp|prl|er|Ch|[nN]?[fsp])/) &&
+                !gene.includes('Lp') && !gene.includes('patn')) {
                 if (Math.random() < 0.5) {
                     if (!foalGenes.includes(gene)) {
                         foalGenes.push(gene);
@@ -452,28 +452,25 @@ function generateFoal(parent1, parent2, variation) {
         }
     });
     
-    // Leopard complex
+    // Leopard complex - inherit Lp and patn genes properly
     const p1Lp = p1.genes.find(g => g.includes('Lp'));
     const p2Lp = p2.genes.find(g => g.includes('Lp'));
-    const p1patn = p1.genes.filter(g => g.includes('patn')).length;
-    const p2patn = p2.genes.filter(g => g.includes('patn')).length;
-    
+    const p1patn = p1.genes.find(g => g.includes('patn'));
+    const p2patn = p2.genes.find(g => g.includes('patn'));
+
     if (p1Lp || p2Lp) {
-        if (Math.random() < 0.5) {
-            const lpAlleles = [];
-            if (p1Lp) lpAlleles.push(...getGeneAlleles(p1Lp));
-            if (p2Lp) lpAlleles.push(...getGeneAlleles(p2Lp));
-            
-            const lpGene = lpAlleles[Math.floor(Math.random() * lpAlleles.length)];
-            if (lpGene === 'Lp') {
-                foalGenes.push(Math.random() < 0.3 ? 'LpLp' : 'nLp');
-            }
-            
-            // Pattern genes
-            const totalPatn = p1patn + p2patn;
-            if (totalPatn > 0 && Math.random() < 0.6) {
-                foalGenes.push(Math.random() < 0.3 ? 'patnpatn' : 'patn');
-            }
+        // Use Mendelian inheritance for Lp
+        const lpGene = inheritGene(p1Lp || 'nn', p2Lp || 'nn');
+        if (lpGene !== 'nn' && lpGene !== 'n') {
+            foalGenes.push(lpGene);
+        }
+    }
+
+    if (p1patn || p2patn) {
+        // Use Mendelian inheritance for patn (recessive)
+        const patnGene = inheritGene(p1patn || 'nn', p2patn || 'nn');
+        if (patnGene !== 'nn' && patnGene !== 'n') {
+            foalGenes.push(patnGene);
         }
     }
     
@@ -790,10 +787,15 @@ function extractTraitsFromQuery(query) {
     if (query.includes('buckskin')) traits.push('Buckskin');
     
     // White markings
+    // Leopard Complex patterns
     if (query.includes('fewspot')) traits.push('Fewspot');
+    if (query.includes('snowcap')) traits.push('Snowcap');
+    if (query.includes('varnish')) traits.push('Varnish Roan');
     if (query.includes('leopard')) traits.push('Leopard');
     if (query.includes('blanket')) traits.push('Blanket');
-    if (query.includes('varnish')) traits.push('Varnish Roan');
+    if (query.includes('snowflake')) traits.push('Snowflake');
+
+    // Other white markings
     if (query.includes('tobiano')) traits.push('Tobiano');
     if (query.includes('overo')) traits.push('Overo');
     if (query.includes('splash')) traits.push('Splash');
@@ -860,15 +862,23 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
         if (traitLower.includes('amber champagne')) {
             if (combinedGeno.includes('nch') && (combinedGeno.includes('ee aa') || combinedGeno.includes('ee_aa'))) score += 100;
         } else if (traitLower.includes('fewspot')) {
-            if (combinedGeno.includes('lplp') && combinedGeno.includes('patn')) score += 100;
+            if (combinedGeno.includes('lplp') && combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('snowcap')) {
+            if (combinedGeno.includes('lplp') && combinedGeno.includes('patn') && !combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('varnish roan')) {
+            if (combinedGeno.includes('lplp') && !combinedGeno.includes('patn')) score += 100;
+        } else if (traitLower.includes('leopard')) {
+            if (combinedGeno.includes('nlp') && combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('blanket')) {
+            if (combinedGeno.includes('nlp') && combinedGeno.includes('patn') && !combinedGeno.includes('patnpatn')) score += 100;
+        } else if (traitLower.includes('snowflake')) {
+            if (combinedGeno.includes('nlp') && !combinedGeno.includes('patn')) score += 100;
         } else if (traitLower.includes('starfield')) {
             if (combinedGeno.includes('sfsf')) score += 100;
         } else if (traitLower.includes('cream pearl')) {
             if (combinedGeno.includes('prl') && combinedGeno.includes('cr')) score += 100;
         } else if (traitLower.includes('ether')) {
             if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) score += 80;
-        } else if (traitLower.includes('leopard')) {
-            if (combinedGeno.includes('lp') && combinedGeno.includes('patn')) score += 80;
         } else if (traitLower.includes('filigree')) {
             if (combinedGeno.includes('fefe') || combinedGeno.includes('nfe')) score += 100;
         } else if (traitLower.includes('ossuary')) {
