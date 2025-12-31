@@ -143,6 +143,11 @@ const SPECIAL_COAT_NAMES = {
     'Black_Tapestry Cream Ether': 'Woad Cream Ether',
     'Chestnut_Tapestry Cream Ether': 'Weld Cream Ether',
 
+    // Tapestry Pearl (base double dilution)
+    'Bay_Tapestry Pearl': 'Tyrian Pearl',
+    'Black_Tapestry Pearl': 'Phthalo Pearl',
+    'Chestnut_Tapestry Pearl': 'Ochre Pearl',
+
     // Tapestry Pearl Champagne (triple dilution)
     'Bay_Tapestry Pearl Champagne': 'Tyrian Pearl Champagne',
     'Black_Tapestry Pearl Champagne': 'Phthalo Pearl Champagne',
@@ -881,6 +886,9 @@ function extractTraitsFromQuery(query) {
     if (query.includes('cold cream pearl ether')) traits.push('Cold Cream Pearl Ether');
 
     // Epic double dilutions
+    if (query.includes('tyrian pearl')) traits.push('Tyrian Pearl');
+    if (query.includes('phthalo pearl')) traits.push('Phthalo Pearl');
+    if (query.includes('ochre pearl')) traits.push('Ochre Pearl');
     if (query.includes('madder ether')) traits.push('Madder Ether');
     if (query.includes('woad ether')) traits.push('Woad Ether');
     if (query.includes('weld ether')) traits.push('Weld Ether');
