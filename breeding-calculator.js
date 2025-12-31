@@ -162,8 +162,8 @@ function genotypeToPhenotype(genoString) {
     let modifiers = [];
 
     // Find base coat (E and A genes)
-    const eGene = genes.find(g => g.match(/^E[Ee]?$/));
-    const aGene = genes.find(g => g.match(/^A[Aa]?$/));
+    const eGene = genes.find(g => g.match(/^[Ee][Ee]?$/));
+    const aGene = genes.find(g => g.match(/^[Aa][Aa]?$/));
 
     if (eGene && aGene) {
         const key = `${eGene}_${aGene}`;
