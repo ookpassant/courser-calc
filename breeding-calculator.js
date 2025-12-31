@@ -115,9 +115,7 @@ const MODIFIER_NAMES = {
     'nV': 'Vellum',
     'nOp': 'Opal',
     'nPr': 'Prism',
-    'sfsf': 'Starfield',
-    'PrOp': 'Prism Opal',
-    'Lusp': 'Illuminated'
+    'sfsf': 'Starfield'
 };
 
 const WHITE_MARKING_NAMES = {
