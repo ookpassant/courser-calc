@@ -149,8 +149,95 @@ function parseGenotype(genoString) {
     const parts = genoString.trim().split('+');
     const genes = parts[0].trim().split(/\s+/);
     const anomalies = parts.length > 1 ? parts[1].trim().split(',').map(a => a.trim()) : [];
-    
+
     return { genes, anomalies };
+}
+
+function genotypeToPhenotype(genoString) {
+    const { genes, anomalies } = parseGenotype(genoString);
+
+    let baseCoat = '';
+    let dilutions = [];
+    let whiteMarkings = [];
+    let modifiers = [];
+
+    // Find base coat (E and A genes)
+    const eGene = genes.find(g => g.match(/^E[Ee]?$/));
+    const aGene = genes.find(g => g.match(/^A[Aa]?$/));
+
+    if (eGene && aGene) {
+        const key = `${eGene}_${aGene}`;
+        baseCoat = COAT_COLORS[key] || 'Unknown';
+    }
+
+    // Find dilutions - check for complex combinations first
+    const genoLower = genoString.toLowerCase();
+    let foundDilution = false;
+
+    // Check for triple dilutions first
+    if (genoLower.includes('crprlch') || genoLower.includes('crchprl') || genoLower.includes('prlcrch')) {
+        dilutions.push('Cream Pearl Champagne');
+        foundDilution = true;
+    } else if (genoLower.includes('crprler') || genoLower.includes('prlcrer')) {
+        dilutions.push('Cream Pearl Ether');
+        foundDilution = true;
+    } else if (genoLower.includes('tpcrer') || genoLower.includes('tperCr')) {
+        dilutions.push('Tapestry Cream Ether');
+        foundDilution = true;
+    } else if (genoLower.includes('tpprlch') || genoLower.includes('tpchprl')) {
+        dilutions.push('Tapestry Pearl Champagne');
+        foundDilution = true;
+    } else if (genoLower.includes('tpprler') || genoLower.includes('tperprl')) {
+        dilutions.push('Tapestry Pearl Ether');
+        foundDilution = true;
+    } else if (genoLower.includes('tpcrch') || genoLower.includes('tpchcr')) {
+        dilutions.push('Tapestry Cream Champagne');
+        foundDilution = true;
+    }
+
+    // Check for double dilutions if no triple found
+    if (!foundDilution) {
+        genes.forEach(gene => {
+            if (DILUTION_NAMES[gene]) {
+                dilutions.push(DILUTION_NAMES[gene]);
+            }
+        });
+    }
+
+    // Find white markings
+    genes.forEach(gene => {
+        if (WHITE_MARKING_NAMES[gene]) {
+            whiteMarkings.push(WHITE_MARKING_NAMES[gene]);
+        }
+    });
+
+    // Find modifiers
+    genes.forEach(gene => {
+        if (MODIFIER_NAMES[gene]) {
+            modifiers.push(MODIFIER_NAMES[gene]);
+        }
+    });
+
+    // Build phenotype string
+    let phenotype = baseCoat;
+
+    if (dilutions.length > 0) {
+        phenotype += ' ' + dilutions.join(' ');
+    }
+
+    if (whiteMarkings.length > 0) {
+        phenotype += ' with ' + whiteMarkings.join(', ');
+    }
+
+    if (modifiers.length > 0) {
+        phenotype += (whiteMarkings.length > 0 ? ' and ' : ' with ') + modifiers.join(', ');
+    }
+
+    if (anomalies.length > 0) {
+        phenotype += ' + ' + anomalies.join(', ');
+    }
+
+    return phenotype.trim();
 }
 
 function getGeneAlleles(gene) {
@@ -462,16 +549,17 @@ function generateFoals() {
 function displayFoals(foals) {
     const resultsContainer = document.getElementById('resultsContainer');
     const resultsGrid = document.getElementById('resultsGrid');
-    
+
     resultsGrid.innerHTML = '';
-    
+
     foals.forEach((foal, index) => {
         const card = document.createElement('div');
         card.className = 'foal-card';
-        
+
         const rarityScore = calculateRarity(foal.genotype);
         const rarityClass = getRarityClass(rarityScore);
-        
+        const phenotype = genotypeToPhenotype(foal.genotype);
+
         card.innerHTML = `
             <h3>Foal Option ${index + 1}</h3>
             <div class="foal-detail">
@@ -483,15 +571,19 @@ function displayFoals(foals) {
                 <span>${foal.temperament}</span>
             </div>
             <div class="foal-detail">
+                <strong>Phenotype:</strong>
+                <span>${phenotype}</span>
+            </div>
+            <div class="foal-detail">
                 <strong>Genotype:</strong>
                 <span>${foal.genotype}</span>
             </div>
             <span class="rarity-badge ${rarityClass}">Rarity: ${rarityScore}</span>
         `;
-        
+
         resultsGrid.appendChild(card);
     });
-    
+
     resultsContainer.style.display = 'block';
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
