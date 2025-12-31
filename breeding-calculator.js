@@ -571,25 +571,50 @@ function displayFoals(foals) {
         if (hasChimera) {
             const chimeraPossibilities = generateChimeraPossibilities(foal.genotype, parent1Geno, parent2Geno);
 
-            // Show variety - get base coat options (first category)
-            const baseDilutionOptions = chimeraPossibilities.filter(p => p.category === 'Base + Dilution');
-            const displayOptions = baseDilutionOptions.slice(0, 5); // Show first 5 base+dilution combos
+            const totalOptions = chimeraPossibilities.baseCoats.length +
+                                chimeraPossibilities.dilutions.length +
+                                chimeraPossibilities.whiteMarkings.length +
+                                chimeraPossibilities.modifiers.length +
+                                chimeraPossibilities.anomalies.length;
 
             chimeraSection = `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #543954;">
-                    <strong style="color: #c084fc; display: block; margin-bottom: 10px;">🎨 Chimera Base Coat Options:</strong>
-                    ${displayOptions.map((poss, i) => `
-                        <div style="background: #1d181d; padding: 10px; margin-bottom: 8px; border-left: 3px solid #a855f7;">
-                            <div style="color: #d4af37; font-size: 0.85em;">${poss.phenotype}</div>
-                            <div style="color: #b8a89f; font-size: 0.75em; margin-top: 3px; font-family: 'Courier New', monospace;">${poss.genotype}</div>
-                        </div>
-                    `).join('')}
-                    <div style="color: #b8a89f; font-size: 0.85em; font-style: italic; margin-top: 8px;">
-                        ${chimeraPossibilities.length} total possibilities including markings & modifiers
+                    <strong style="color: #c084fc; display: block; margin-bottom: 10px;">🎨 Chimera Possibilities:</strong>
+                    <div style="background: #1d181d; padding: 12px; margin-bottom: 10px; border-left: 3px solid #a855f7;">
+                        ${chimeraPossibilities.baseCoats.length > 0 ? `
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #d4af37; font-size: 0.85em;">Base Coats (${chimeraPossibilities.baseCoats.length}):</strong>
+                                <div style="color: #b8a89f; font-size: 0.8em; margin-top: 4px;">${chimeraPossibilities.baseCoats.join(', ')}</div>
+                            </div>
+                        ` : ''}
+                        ${chimeraPossibilities.dilutions.length > 0 ? `
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #60a5fa; font-size: 0.85em;">Dilutions (${chimeraPossibilities.dilutions.length}):</strong>
+                                <div style="color: #b8a89f; font-size: 0.8em; margin-top: 4px;">${chimeraPossibilities.dilutions.join(', ')}</div>
+                            </div>
+                        ` : ''}
+                        ${chimeraPossibilities.whiteMarkings.length > 0 ? `
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #c084fc; font-size: 0.85em;">Markings (${chimeraPossibilities.whiteMarkings.length}):</strong>
+                                <div style="color: #b8a89f; font-size: 0.8em; margin-top: 4px;">${chimeraPossibilities.whiteMarkings.join(', ')}</div>
+                            </div>
+                        ` : ''}
+                        ${chimeraPossibilities.modifiers.length > 0 ? `
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #4ade80; font-size: 0.85em;">Modifiers (${chimeraPossibilities.modifiers.length}):</strong>
+                                <div style="color: #b8a89f; font-size: 0.8em; margin-top: 4px;">${chimeraPossibilities.modifiers.join(', ')}</div>
+                            </div>
+                        ` : ''}
+                        ${chimeraPossibilities.anomalies.length > 0 ? `
+                            <div>
+                                <strong style="color: #fbbf24; font-size: 0.85em;">Anomalies (${chimeraPossibilities.anomalies.length}):</strong>
+                                <div style="color: #b8a89f; font-size: 0.8em; margin-top: 4px;">${chimeraPossibilities.anomalies.join(', ')}</div>
+                            </div>
+                        ` : ''}
                     </div>
                     <button onclick='fillChimeraCalculator("${foal.genotype.replace(/'/g, "&#39;")}", "${parent1Geno.replace(/'/g, "&#39;")}", "${parent2Geno.replace(/'/g, "&#39;")}")'
                             style="margin-top: 10px; padding: 8px 12px; background: linear-gradient(135deg, #6b4f6b 0%, #543954 100%); color: #c084fc; border: 2px solid #a855f7; cursor: pointer; font-weight: 600; width: 100%; font-size: 0.85em;">
-                        View All ${chimeraPossibilities.length} Chimera Options
+                        View Full Chimera Breakdown
                     </button>
                 </div>
             `;
@@ -897,8 +922,8 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
     const eArray = Array.from(eAlleles);
     const aArray = Array.from(aAlleles);
 
-    // Generate all possible base coat combinations
-    const baseCoatCombinations = [];
+    // Generate all possible base coats
+    const baseCoats = new Set();
     for (let i = 0; i < eArray.length; i++) {
         for (let j = i; j < eArray.length; j++) {
             for (let k = 0; k < aArray.length; k++) {
@@ -906,14 +931,9 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
                     const eGene = combineAlleles(eArray[i], eArray[j]);
                     const aGene = combineAlleles(aArray[k], aArray[l]);
                     const baseCoatKey = `${eGene}_${aGene}`;
-
-                    // Only add unique combinations
-                    if (!baseCoatCombinations.some(bc => bc.eGene === eGene && bc.aGene === aGene)) {
-                        baseCoatCombinations.push({
-                            eGene: eGene,
-                            aGene: aGene,
-                            baseCoat: COAT_COLORS[baseCoatKey] || 'Unknown'
-                        });
+                    const baseCoatName = COAT_COLORS[baseCoatKey];
+                    if (baseCoatName) {
+                        baseCoats.add(baseCoatName);
                     }
                 }
             }
@@ -921,127 +941,39 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
     }
 
     // Get all available dilutions from parents
-    const dilutionAlleles = new Set();
+    const dilutionNames = new Set();
     allParentGenes.forEach(gene => {
-        if (gene.includes('Cr') || gene.includes('Tp') || gene.includes('prl') ||
-            gene.includes('er') || gene.includes('Ch')) {
-            const alleles = getGeneAlleles(gene);
-            alleles.forEach(a => {
-                if (a !== 'n') dilutionAlleles.add(a);
-            });
+        if (DILUTION_NAMES[gene]) {
+            dilutionNames.add(DILUTION_NAMES[gene]);
         }
     });
 
     // Get all available white markings
-    const whiteMarkingOptions = [];
+    const whiteMarkings = new Set();
     allParentGenes.forEach(gene => {
         if (WHITE_MARKING_NAMES[gene]) {
-            if (!whiteMarkingOptions.includes(gene)) {
-                whiteMarkingOptions.push(gene);
-            }
+            whiteMarkings.add(WHITE_MARKING_NAMES[gene]);
         }
     });
 
     // Get all available modifiers
-    const modifierOptions = [];
+    const modifiers = new Set();
     allParentGenes.forEach(gene => {
         if (MODIFIER_NAMES[gene]) {
-            if (!modifierOptions.includes(gene)) {
-                modifierOptions.push(gene);
-            }
+            modifiers.add(MODIFIER_NAMES[gene]);
         }
     });
 
     // Get parent anomalies (excluding Chimera)
-    const availableAnomalies = allParentAnomalies.filter(a => a !== 'Chimera');
+    const anomalies = new Set(allParentAnomalies.filter(a => a !== 'Chimera'));
 
-    // Generate all dilution combinations (including none, single, and compound)
-    const dilutionCombinations = [null]; // Start with no dilution
-
-    const dilutionArray = Array.from(dilutionAlleles);
-
-    // Single dilutions (heterozygous and homozygous)
-    dilutionArray.forEach(dilution => {
-        dilutionCombinations.push('n' + dilution); // Heterozygous
-        dilutionCombinations.push(dilution + dilution); // Homozygous
-    });
-
-    // Compound heterozygous dilutions
-    for (let i = 0; i < dilutionArray.length; i++) {
-        for (let j = i + 1; j < dilutionArray.length; j++) {
-            dilutionCombinations.push(combineAlleles(dilutionArray[i], dilutionArray[j]));
-        }
-    }
-
-    const possibilities = [];
-    const foalPhenotype = genotypeToPhenotype(foalGenotype);
-    const seenGenotypes = new Set();
-
-    // Generate possibilities for each base coat
-    baseCoatCombinations.forEach(baseCoat => {
-        // For each dilution option
-        dilutionCombinations.forEach(dilution => {
-            // Create a base genotype with this base coat and dilution
-            const baseGenes = [baseCoat.eGene, baseCoat.aGene];
-            if (dilution) {
-                baseGenes.push(dilution);
-            }
-
-            // Add this as one possibility (base coat with dilution only)
-            const simpleGeno = baseGenes.join(' ');
-            const simplePhenotype = genotypeToPhenotype(simpleGeno);
-
-            if (simplePhenotype !== foalPhenotype && !seenGenotypes.has(simpleGeno)) {
-                seenGenotypes.add(simpleGeno);
-                possibilities.push({
-                    genotype: simpleGeno,
-                    phenotype: simplePhenotype,
-                    category: 'Base + Dilution'
-                });
-            }
-
-            // Add variations with white markings
-            whiteMarkingOptions.forEach(marking => {
-                const genoWithMarking = [...baseGenes, marking].join(' ');
-                const phenoWithMarking = genotypeToPhenotype(genoWithMarking);
-
-                if (phenoWithMarking !== foalPhenotype && !seenGenotypes.has(genoWithMarking)) {
-                    seenGenotypes.add(genoWithMarking);
-                    possibilities.push({
-                        genotype: genoWithMarking,
-                        phenotype: phenoWithMarking,
-                        category: 'With Markings'
-                    });
-                }
-            });
-
-            // Add variations with modifiers
-            modifierOptions.forEach(modifier => {
-                const genoWithModifier = [...baseGenes, modifier].join(' ');
-                const phenoWithModifier = genotypeToPhenotype(genoWithModifier);
-
-                if (phenoWithModifier !== foalPhenotype && !seenGenotypes.has(genoWithModifier)) {
-                    seenGenotypes.add(genoWithModifier);
-                    possibilities.push({
-                        genotype: genoWithModifier,
-                        phenotype: phenoWithModifier,
-                        category: 'With Modifiers'
-                    });
-                }
-            });
-        });
-    });
-
-    // Sort by category and phenotype
-    possibilities.sort((a, b) => {
-        if (a.category !== b.category) {
-            const order = ['Base + Dilution', 'With Markings', 'With Modifiers'];
-            return order.indexOf(a.category) - order.indexOf(b.category);
-        }
-        return a.phenotype.localeCompare(b.phenotype);
-    });
-
-    return possibilities;
+    return {
+        baseCoats: Array.from(baseCoats).sort(),
+        dilutions: Array.from(dilutionNames).sort(),
+        whiteMarkings: Array.from(whiteMarkings).sort(),
+        modifiers: Array.from(modifiers).sort(),
+        anomalies: Array.from(anomalies).sort()
+    };
 }
 
 function fillChimeraCalculator(foalGeno, parent1Geno, parent2Geno) {
@@ -1100,55 +1032,107 @@ function displayChimeraPossibilities(foalGenotype, possibilities) {
     `;
     resultsContent.appendChild(mainCoatDiv);
 
-    // Display Chimera possibilities organized by category
+    // Display Chimera possibilities header
     const chimeraHeader = document.createElement('h4');
     chimeraHeader.style.cssText = 'color: #d4af37; margin-bottom: 15px; font-size: 1.1em;';
-    chimeraHeader.textContent = `All Possible Chimera Patch Coats (${possibilities.length} total variations)`;
+    chimeraHeader.textContent = 'Chimera Patch Possibilities';
     resultsContent.appendChild(chimeraHeader);
 
-    // Group by category
-    const categories = {
-        'Base + Dilution': [],
-        'With Markings': [],
-        'With Modifiers': []
-    };
+    const infoBox = document.createElement('div');
+    infoBox.style.cssText = 'background: #3a2f3a; border-left: 4px solid #a855f7; padding: 15px; margin-bottom: 20px; color: #b8a89f; font-style: italic;';
+    infoBox.textContent = 'The Chimera patch can display any combination of the traits listed below from both parents.';
+    resultsContent.appendChild(infoBox);
 
-    possibilities.forEach(poss => {
-        if (categories[poss.category]) {
-            categories[poss.category].push(poss);
-        }
-    });
+    // Create grid for categories
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;';
 
-    // Display each category
-    Object.keys(categories).forEach(category => {
-        if (categories[category].length > 0) {
-            const categoryHeader = document.createElement('h5');
-            categoryHeader.style.cssText = 'color: #c084fc; margin-top: 25px; margin-bottom: 15px; font-size: 1em; border-bottom: 1px solid #543954; padding-bottom: 8px;';
-            categoryHeader.textContent = `${category} (${categories[category].length})`;
-            resultsContent.appendChild(categoryHeader);
+    // Base Coats
+    if (possibilities.baseCoats.length > 0) {
+        const baseCoatCard = document.createElement('div');
+        baseCoatCard.style.cssText = 'background: #3a2f3a; padding: 20px; border: 2px solid #543954; border-left: 4px solid #d4af37;';
+        baseCoatCard.innerHTML = `
+            <h5 style="color: #d4af37; margin-bottom: 15px; font-size: 1em; font-weight: 600;">Base Coats (${possibilities.baseCoats.length})</h5>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                ${possibilities.baseCoats.map(coat => `
+                    <li style="padding: 8px; margin-bottom: 6px; background: #1d181d; border-left: 3px solid #d4af37; color: #d4af37;">
+                        ${coat}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        grid.appendChild(baseCoatCard);
+    }
 
-            const grid = document.createElement('div');
-            grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px;';
+    // Dilutions
+    if (possibilities.dilutions.length > 0) {
+        const dilutionCard = document.createElement('div');
+        dilutionCard.style.cssText = 'background: #3a2f3a; padding: 20px; border: 2px solid #543954; border-left: 4px solid #60a5fa;';
+        dilutionCard.innerHTML = `
+            <h5 style="color: #60a5fa; margin-bottom: 15px; font-size: 1em; font-weight: 600;">Dilutions (${possibilities.dilutions.length})</h5>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                ${possibilities.dilutions.map(dilution => `
+                    <li style="padding: 8px; margin-bottom: 6px; background: #1d181d; border-left: 3px solid #60a5fa; color: #d4af37;">
+                        ${dilution}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        grid.appendChild(dilutionCard);
+    }
 
-            categories[category].forEach((poss, index) => {
-                const card = document.createElement('div');
-                card.style.cssText = 'background: #3a2f3a; padding: 15px; border: 2px solid #543954; border-left: 4px solid #a855f7;';
-                card.innerHTML = `
-                    <div style="margin-bottom: 10px;">
-                        <strong style="color: #b8a89f; font-size: 0.85em;">Phenotype:</strong>
-                        <span style="color: #d4af37; display: block; margin-top: 5px; font-size: 0.9em;">${poss.phenotype}</span>
-                    </div>
-                    <div>
-                        <strong style="color: #b8a89f; font-size: 0.85em;">Genotype:</strong>
-                        <span style="color: #d4af37; font-family: 'Courier New', monospace; display: block; margin-top: 5px; background: #1d181d; padding: 8px; border: 1px solid #543954; font-size: 0.8em;">${poss.genotype}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+    // White Markings
+    if (possibilities.whiteMarkings.length > 0) {
+        const markingsCard = document.createElement('div');
+        markingsCard.style.cssText = 'background: #3a2f3a; padding: 20px; border: 2px solid #543954; border-left: 4px solid #c084fc;';
+        markingsCard.innerHTML = `
+            <h5 style="color: #c084fc; margin-bottom: 15px; font-size: 1em; font-weight: 600;">White Markings (${possibilities.whiteMarkings.length})</h5>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                ${possibilities.whiteMarkings.map(marking => `
+                    <li style="padding: 8px; margin-bottom: 6px; background: #1d181d; border-left: 3px solid #c084fc; color: #d4af37;">
+                        ${marking}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        grid.appendChild(markingsCard);
+    }
 
-            resultsContent.appendChild(grid);
-        }
-    });
+    // Modifiers
+    if (possibilities.modifiers.length > 0) {
+        const modifiersCard = document.createElement('div');
+        modifiersCard.style.cssText = 'background: #3a2f3a; padding: 20px; border: 2px solid #543954; border-left: 4px solid #4ade80;';
+        modifiersCard.innerHTML = `
+            <h5 style="color: #4ade80; margin-bottom: 15px; font-size: 1em; font-weight: 600;">Modifiers (${possibilities.modifiers.length})</h5>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                ${possibilities.modifiers.map(modifier => `
+                    <li style="padding: 8px; margin-bottom: 6px; background: #1d181d; border-left: 3px solid #4ade80; color: #d4af37;">
+                        ${modifier}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        grid.appendChild(modifiersCard);
+    }
+
+    // Anomalies
+    if (possibilities.anomalies.length > 0) {
+        const anomaliesCard = document.createElement('div');
+        anomaliesCard.style.cssText = 'background: #3a2f3a; padding: 20px; border: 2px solid #543954; border-left: 4px solid #fbbf24;';
+        anomaliesCard.innerHTML = `
+            <h5 style="color: #fbbf24; margin-bottom: 15px; font-size: 1em; font-weight: 600;">Anomalies (${possibilities.anomalies.length})</h5>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                ${possibilities.anomalies.map(anomaly => `
+                    <li style="padding: 8px; margin-bottom: 6px; background: #1d181d; border-left: 3px solid #fbbf24; color: #d4af37;">
+                        ${anomaly}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        grid.appendChild(anomaliesCard);
+    }
+
+    resultsContent.appendChild(grid);
 
     resultsContainer.style.display = 'block';
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
