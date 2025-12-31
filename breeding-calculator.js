@@ -1244,16 +1244,12 @@ function canProduceCompoundDilution(p1Geno, p2Geno, dilution1, dilution2) {
     // Cr, Tp, and prl are allelic - they share a locus
     // A parent with Tpprl can pass either Tp OR prl (they're on separate alleles)
     // A parent with Crprl can pass either Cr OR prl
-    // etc.
+    // To produce compound offspring, we need BOTH alleles available from the pair
+    // - If P1 has Crprl and P2 has nothing: foal gets (Cr or prl) + n = nCr or nprl (NOT Crprl)
+    // - If P1 has Crprl and P2 has nCr: foal can get Crprl (P1 passes prl, P2 passes Cr)
 
     const compound = dilution1 + dilution2;
     const reverseCompound = dilution2 + dilution1;
-
-    // Check if either parent already has the exact compound
-    if (p1Geno.includes(compound) || p2Geno.includes(compound) ||
-        p1Geno.includes(reverseCompound) || p2Geno.includes(reverseCompound)) {
-        return true;
-    }
 
     // Check what dilution alleles each parent can pass
     // A parent can pass a dilution if they have it as:
@@ -1280,7 +1276,28 @@ function canProduceCompoundDilution(p1Geno, p2Geno, dilution1, dilution2) {
     const p2Can1 = canPassDilution(p2Geno, dilution1);
     const p2Can2 = canPassDilution(p2Geno, dilution2);
 
-    // One parent can pass dilution1, other can pass dilution2
+    // Check if either parent has the compound
+    const p1HasCompound = p1Geno.includes(compound) || p1Geno.includes(reverseCompound);
+    const p2HasCompound = p2Geno.includes(compound) || p2Geno.includes(reverseCompound);
+
+    // If both parents have the compound, can definitely produce it
+    if (p1HasCompound && p2HasCompound) {
+        return true;
+    }
+
+    // If one parent has the compound, the OTHER parent must have at least one component
+    // Example: P1 has Crprl (can pass Cr or prl), P2 has nCr (can pass Cr or n)
+    // Foal can get: Cr+Cr=CrCr, Cr+prl=Crprl, prl+Cr=Crprl, prl+n=nprl
+    if (p1HasCompound) {
+        return p2Can1 || p2Can2;
+    }
+
+    if (p2HasCompound) {
+        return p1Can1 || p1Can2;
+    }
+
+    // Neither has compound - need different parents to provide each component
+    // Example: P1 has nCr, P2 has nprl → can make Crprl
     return (p1Can1 && p2Can2) || (p1Can2 && p2Can1);
 }
 
