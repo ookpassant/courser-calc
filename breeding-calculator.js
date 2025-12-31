@@ -110,11 +110,13 @@ const MODIFIER_NAMES = {
     'nZ': 'Silver',
     'nLu': 'Illuminated',
     'nsp': 'Sepulchered', 'spsp': 'Sepulchered',
+    'Lusp': 'Illuminated Sepulchered',
     'nTd': 'Tabard',
     'nGl': 'Gilt',
     'nV': 'Vellum',
     'nOp': 'Opal',
     'nPr': 'Prism',
+    'PrOp': 'Prism Opal',
     'nsf': 'Starfield', 'sfsf': 'Starfield'
 };
 
