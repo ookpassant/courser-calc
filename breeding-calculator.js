@@ -1242,16 +1242,115 @@ function findBreedingMatches(targetTraits) {
     return matches;
 }
 
+function canProduceCompoundDilution(p1Geno, p2Geno, dilution1, dilution2) {
+    // Cr, Tp, and prl are allelic - they share a locus
+    // A parent with Tpprl can pass either Tp OR prl (they're on separate alleles)
+    // A parent with Crprl can pass either Cr OR prl
+    // etc.
+
+    const compound = dilution1 + dilution2;
+    const reverseCompound = dilution2 + dilution1;
+
+    // Check if either parent already has the exact compound
+    if (p1Geno.includes(compound) || p2Geno.includes(compound) ||
+        p1Geno.includes(reverseCompound) || p2Geno.includes(reverseCompound)) {
+        return true;
+    }
+
+    // Check what dilution alleles each parent can pass
+    // A parent can pass a dilution if they have it as:
+    // - heterozygous: nCr, nTp, nprl, ner
+    // - homozygous: CrCr, TpTp, prlprl, erer
+    // - compound: Crprl, TpCr, Tpprl, etc. (can pass EITHER component)
+
+    function canPassDilution(geno, dilution) {
+        const d = dilution.toLowerCase();
+        // Has it standalone (hetero or homo)
+        if (geno.includes('n' + d) || geno.includes(' ' + d + ' ') || geno.includes(d + d)) {
+            return true;
+        }
+        // Check if it's part of any compound dilution
+        // Since Cr, Tp, prl, er, Ch are allelic, a compound like Tpprl means parent can pass either Tp or prl
+        if (geno.includes(d)) {
+            return true;
+        }
+        return false;
+    }
+
+    const p1Can1 = canPassDilution(p1Geno, dilution1);
+    const p1Can2 = canPassDilution(p1Geno, dilution2);
+    const p2Can1 = canPassDilution(p2Geno, dilution1);
+    const p2Can2 = canPassDilution(p2Geno, dilution2);
+
+    // One parent can pass dilution1, other can pass dilution2
+    return (p1Can1 && p2Can2) || (p1Can2 && p2Can1);
+}
+
 function calculateMatchScore(parent1, parent2, targetTraits) {
     let score = 0;
-    const combinedGeno = (parent1.genotype + ' ' + parent2.genotype).toLowerCase();
-    
+    const p1Geno = parent1.genotype.toLowerCase();
+    const p2Geno = parent2.genotype.toLowerCase();
+    const combinedGeno = (p1Geno + ' ' + p2Geno);
+
     targetTraits.forEach(trait => {
         const traitLower = trait.toLowerCase();
-        
+
         // Check for specific genes that create this trait
-        // Special coat color names
-        if (traitLower.includes('woad')) {
+        // Compound dilutions with Cream Pearl + Ether
+        if (traitLower.includes('cream pearl ether') || traitLower === 'ombre cream pearl ether' ||
+            traitLower === 'classic cream pearl ether' || traitLower === 'cold cream pearl ether') {
+            // Need Crprl + erer (homozygous ether requires BOTH parents have ether)
+            const hasCreamPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl');
+            const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
+            const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
+            const canMakeErer = p1HasEther && p2HasEther;
+            if (hasCreamPearl && canMakeErer) score += 150;
+        } else if (traitLower.includes('cream pearl champagne')) {
+            // Need Crprl + Ch
+            const hasCreamPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl');
+            const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
+            if (hasCreamPearl && hasChampagne) score += 150;
+        } else if (traitLower.includes('tapestry pearl ether') || traitLower === 'tyrian pearl ether' ||
+                   traitLower === 'phthalo pearl ether' || traitLower === 'ochre pearl ether') {
+            // Need Tpprl + erer (homozygous ether requires BOTH parents have ether)
+            const hasTapestryPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl');
+            const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
+            const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
+            const canMakeErer = p1HasEther && p2HasEther;
+            if (hasTapestryPearl && canMakeErer) score += 150;
+        } else if (traitLower.includes('tapestry pearl champagne')) {
+            // Need Tpprl + Ch
+            const hasTapestryPearl = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl');
+            const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
+            if (hasTapestryPearl && hasChampagne) score += 150;
+        } else if (traitLower.includes('tapestry cream ether') || traitLower === 'madder cream ether' ||
+                   traitLower === 'woad cream ether' || traitLower === 'weld cream ether') {
+            // Need TpCr + erer (homozygous ether requires BOTH parents have ether)
+            const hasTapestryCream = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'cr');
+            const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
+            const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
+            const canMakeErer = p1HasEther && p2HasEther;
+            if (hasTapestryCream && canMakeErer) score += 150;
+        } else if (traitLower.includes('tapestry cream champagne') || traitLower === 'madder cream champagne' ||
+                   traitLower === 'woad cream champagne' || traitLower === 'weld cream champagne') {
+            // Need TpCr + Ch
+            const hasTapestryCream = canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'cr');
+            const hasChampagne = combinedGeno.includes('nch') || combinedGeno.includes('ch');
+            if (hasTapestryCream && hasChampagne) score += 150;
+        } else if (traitLower.includes('pearl ether') && !traitLower.includes('cream') && !traitLower.includes('tapestry')) {
+            // Need prlprl + erer (homozygous pearl and ether)
+            const p1HasPearl = p1Geno.includes('prl');
+            const p2HasPearl = p2Geno.includes('prl');
+            const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er');
+            const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er');
+            if (p1HasPearl && p2HasPearl && p1HasEther && p2HasEther) score += 120;
+        } else if (traitLower.includes('cream pearl') && !traitLower.includes('ether') && !traitLower.includes('champagne')) {
+            // Need Crprl (cream pearl compound)
+            if (canProduceCompoundDilution(p1Geno, p2Geno, 'cr', 'prl')) score += 100;
+        } else if (traitLower.includes('tapestry pearl') && !traitLower.includes('ether') && !traitLower.includes('champagne')) {
+            // Need Tpprl (tapestry pearl compound)
+            if (canProduceCompoundDilution(p1Geno, p2Geno, 'tp', 'prl')) score += 100;
+        } else if (traitLower.includes('woad')) {
             if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
         } else if (traitLower.includes('madder')) {
             if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
@@ -1285,8 +1384,6 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             if (combinedGeno.includes('nlp') && !combinedGeno.includes('patn')) score += 100;
         } else if (traitLower.includes('starfield')) {
             if (combinedGeno.includes('sfsf')) score += 100;
-        } else if (traitLower.includes('cream pearl')) {
-            if (combinedGeno.includes('prl') && combinedGeno.includes('cr')) score += 100;
         } else if (traitLower.includes('ether')) {
             if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) score += 80;
         } else if (traitLower.includes('filigree')) {
@@ -1299,7 +1396,7 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             score += 50;
         }
     });
-    
+
     return score;
 }
 
