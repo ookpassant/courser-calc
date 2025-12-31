@@ -86,6 +86,42 @@ const COAT_COLORS = {
     'ee_AA': 'Chestnut', 'ee_Aa': 'Chestnut', 'ee_aa': 'Chestnut'
 };
 
+// Special coat color names for base + dilution combinations
+const SPECIAL_COAT_NAMES = {
+    // Single Cream dilutions
+    'Bay_Cream': 'Buckskin',
+    'Black_Cream': 'Smoky Black',
+    'Chestnut_Cream': 'Palomino',
+
+    // Double Cream dilutions
+    'Bay_Double Cream': 'Perlino',
+    'Black_Double Cream': 'Smoky Cream',
+    'Chestnut_Double Cream': 'Cremello',
+
+    // Single Tapestry dilutions
+    'Bay_Tapestry': 'Madder',
+    'Black_Tapestry': 'Woad',
+    'Chestnut_Tapestry': 'Weld',
+
+    // Pearl dilutions
+    'Bay_Pearl': 'Bay Pearl',
+    'Black_Pearl': 'Black Pearl',
+    'Chestnut_Pearl': 'Gold Pearl',
+
+    // Champagne dilutions
+    'Bay_Champagne': 'Amber Champagne',
+    'Black_Champagne': 'Classic Champagne',
+    'Chestnut_Champagne': 'Gold Champagne',
+
+    // Tapestry + Cream combinations
+    'Madder_Cream': 'Madder Buckskin',
+    'Woad_Cream': 'Woad Smoky Black',
+    'Weld_Cream': 'Weld Palomino',
+    'Bay_Tapestry Cream': 'Madder Buckskin',
+    'Black_Tapestry Cream': 'Woad Smoky Black',
+    'Chestnut_Tapestry Cream': 'Weld Palomino'
+};
+
 const DILUTION_NAMES = {
     'nCr': 'Cream', 'Cr': 'Cream', 'CrCr': 'Double Cream',
     'nTp': 'Tapestry', 'Tp': 'Tapestry', 'TpTp': 'Tapestry',
@@ -237,18 +273,31 @@ function genotypeToPhenotype(genoString) {
         }
     }
 
-    // Find modifiers
+    // Find modifiers (with special handling for recessive genes)
     genes.forEach(gene => {
         if (MODIFIER_NAMES[gene]) {
-            modifiers.push(MODIFIER_NAMES[gene]);
+            // Special case for Flaxen - show "Carrying" for heterozygous
+            if (gene === 'nf') {
+                modifiers.push('Carrying Flaxen');
+            } else {
+                modifiers.push(MODIFIER_NAMES[gene]);
+            }
         }
     });
 
-    // Build phenotype string
+    // Build phenotype string with special coat color names
     let phenotype = baseCoat;
 
     if (dilutions.length > 0) {
-        phenotype += ' ' + dilutions.join(' ');
+        const dilutionStr = dilutions.join(' ');
+        const specialKey = `${baseCoat}_${dilutionStr}`;
+
+        // Check if there's a special name for this base + dilution combination
+        if (SPECIAL_COAT_NAMES[specialKey]) {
+            phenotype = SPECIAL_COAT_NAMES[specialKey];
+        } else {
+            phenotype += ' ' + dilutionStr;
+        }
     }
 
     if (whiteMarkings.length > 0) {
