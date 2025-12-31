@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeon Coursers Breeding Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-color: #1d181d;
+            background-image: 
+                linear-gradient(rgba(29, 24, 29, 0.9), rgba(29, 24, 29, 0.95)),
+                url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect fill="%23302530" width="100" height="100"/><path d="M0 0L50 50L0 100M100 0L50 50L100 100" stroke="%23543954" stroke-width="0.5" fill="none"/></svg>');
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .site-header {
+            background-color: #302530;
+            background-image: 
+                linear-gradient(rgba(48, 37, 48, 0.9), rgba(48, 37, 48, 0.95)),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(84, 57, 84, 0.1) 2px, rgba(84, 57, 84, 0.1) 4px),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(84, 57, 84, 0.1) 2px, rgba(84, 57, 84, 0.1) 4px);
+            border-bottom: 2px solid #543954;
+            border-top: 2px solid #543954;
+            padding: 40px 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .site-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            opacity: 0.5;
+        }
+
+        .site-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            opacity: 0.5;
+        }
+
+        .site-header h1 {
+            color: #d4af37;
+            font-size: 3em;
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(212, 175, 55, 0.3);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .site-header .subtitle {
+            color: #b8a89f;
+            font-size: 1.2em;
+            font-style: italic;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #2a232a;
+            border: 3px solid #543954;
+            box-shadow: 
+                0 0 30px rgba(84, 57, 84, 0.5), 
+                inset 0 0 50px rgba(0, 0, 0, 0.3),
+                inset 0 0 0 1px rgba(212, 175, 55, 0.1);
+            padding: 40px;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #d4af37;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #b8a89f;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .parents-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .parent-card {
+            background: #3a2f3a;
+            padding: 25px;
+            border: 2px solid #543954;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .parent-card::before,
+        .parent-card::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d4af37;
+        }
+
+        .parent-card::before {
+            top: -2px;
+            left: -2px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .parent-card::after {
+            bottom: -2px;
+            right: -2px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .parent-card h2 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid #543954;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b8a89f;
+            font-weight: 600;
+            font-size: 0.95em;
+            letter-spacing: 0.5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #543954;
+            background: #1d181d;
+            color: #d4af37;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #543954 0%, #6b4f6b 100%);
+            color: #d4af37;
+            border: 2px solid #d4af37;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            letter-spacing: 1px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .generate-btn:hover {
+            background: linear-gradient(135deg, #6b4f6b 0%, #543954 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #3d1f1f;
+            color: #ff6b6b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #8b3a3a;
+            display: none;
+            font-style: italic;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .foal-card {
+            background: #3a2f3a;
+            padding: 25px;
+            border: 2px solid #543954;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .foal-card::before,
+        .foal-card::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid #543954;
+            opacity: 0.5;
+        }
+
+        .foal-card::before {
+            top: -2px;
+            left: -2px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .foal-card::after {
+            bottom: -2px;
+            right: -2px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .foal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(84, 57, 84, 0.6), inset 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .foal-card:hover::before,
+        .foal-card:hover::after {
+            border-color: #d4af37;
+            opacity: 1;
+        }
+
+        .foal-card h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #543954;
+            padding-bottom: 10px;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .foal-detail {
+            margin-bottom: 12px;
+        }
+
+        .foal-detail strong {
+            display: block;
+            color: #b8a89f;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        .foal-detail span {
+            display: block;
+            color: #d4af37;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            background: #1d181d;
+            padding: 8px;
+            border: 1px solid #543954;
+            word-wrap: break-word;
+        }
+
+        .rarity-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            font-size: 0.8em;
+            font-weight: 700;
+            margin-top: 10px;
+            border: 2px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .legendary { 
+            background: rgba(255, 215, 0, 0.2); 
+            color: #ffd700; 
+            border-color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        .epic { 
+            background: rgba(163, 53, 238, 0.2); 
+            color: #c084fc; 
+            border-color: #a855f7;
+            text-shadow: 0 0 10px rgba(163, 53, 238, 0.5);
+        }
+        .rare { 
+            background: rgba(59, 130, 246, 0.2); 
+            color: #60a5fa; 
+            border-color: #3b82f6;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .uncommon { 
+            background: rgba(34, 197, 94, 0.2); 
+            color: #4ade80; 
+            border-color: #22c55e;
+        }
+        .common { 
+            background: rgba(156, 163, 175, 0.2); 
+            color: #9ca3af; 
+            border-color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .parents-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+
+            .site-header h1 {
+                font-size: 2em;
+            }
+        }
+
+        .info-box {
+            background: #3a2f3a;
+            border: 2px solid #543954;
+            border-left: 4px solid #d4af37;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #b8a89f;
+            font-style: italic;
+        }
+
+        .info-box strong {
+            color: #d4af37;
+        }
+
+        .card {
+            background: #3a2f3a;
+            border: 2px solid #543954;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: #302530;
+            border-bottom: 2px solid #543954;
+            padding: 15px 20px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .search-result-item {
+            background: #2a232a;
+            border: 2px solid #543954;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #d4af37;
+        }
+
+        .search-result-item h4 {
+            color: #d4af37;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .search-result-item p {
+            color: #b8a89f;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .search-result-item .geno {
+            font-family: 'Courier New', monospace;
+            background: #1d181d;
+            padding: 8px;
+            border: 1px solid #543954;
+            display: block;
+            margin: 8px 0;
+            color: #d4af37;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="site-header">
+        <h1>Dungeon Coursers</h1>
+        <p class="subtitle">Breeding Calculator</p>
+    </div>
+
+    <div class="container">
+        <p class="subtitle">Generate foal possibilities from two parent horses</p>
+
+        <div class="info-box">
+            <p><strong>Note:</strong> Parents must have different Temperaments to breed!</p>
+            <p><strong>Tip:</strong> Paste the full genotype string (e.g., "Ee Aa nCr nT + Brindle")</p>
+        </div>
+
+        <div class="card mb-4" style="background: #3a2f3a; border: 2px solid #543954;">
+            <div class="card-header" style="background: #302530; border-bottom: 2px solid #543954;">
+                <h2 style="color: #d4af37; margin: 0; font-size: 1.3em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">My Horse Collection</h2>
+            </div>
+            <div class="card-body" style="padding: 25px;">
+                <div class="mb-3">
+                    <label for="csvUpload" style="color: #d4af37; font-weight: 600;">Upload Your Horses CSV:</label>
+                    <input type="file" id="csvUpload" accept=".csv" style="background: #1d181d; color: #b8a89f; border: 2px solid #543954; padding: 10px;">
+                    <p style="color: #b8a89f; font-size: 0.9em; margin-top: 8px; font-style: italic;">Upload a CSV with columns: ID, Name, Genotype, Temperament, Variant</p>
+                </div>
+                
+                <div id="collectionStatus" style="color: #b8a89f; margin-bottom: 15px; display: none;">
+                    <strong style="color: #d4af37;">Loaded:</strong> <span id="horseCount">0</span> horses
+                </div>
+
+                <div class="search-section">
+                    <label for="breedingQuery" style="color: #d4af37; font-weight: 600;">Ask a Breeding Question:</label>
+                    <input type="text" id="breedingQuery" placeholder='e.g., "How can I make Amber Champagne?" or "Who can breed for fewspot and starfield?"' style="background: #1d181d; color: #d4af37; border: 2px solid #543954; padding: 12px; margin-bottom: 15px; font-family: inherit;">
+                    <button onclick="searchBreeding()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #6b4f6b 0%, #543954 100%); color: #d4af37; border: 2px solid #543954; font-weight: 700; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;">Search My Horses</button>
+                </div>
+
+                <div id="searchResults" style="margin-top: 20px; display: none;">
+                    <h3 style="color: #d4af37; font-size: 1.2em; margin-bottom: 15px; border-bottom: 2px solid #543954; padding-bottom: 10px;">Search Results</h3>
+                    <div id="searchResultsContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="parents-container">
+            <!-- Parent 1 -->
+            <div class="parent-card">
+                <h2>Parent 1</h2>
+                <label for="parent1Geno">Genotype:</label>
+                <textarea id="parent1Geno" placeholder="Ee Aa nCr nT + Brindle"></textarea>
+
+                <label for="parent1Temp">Temperament:</label>
+                <select id="parent1Temp">
+                    <option value="">Select Temperament</option>
+                    <option value="Choleric">Choleric</option>
+                    <option value="Melancholic">Melancholic</option>
+                    <option value="Phlegmatic">Phlegmatic</option>
+                    <option value="Sanguine">Sanguine</option>
+                </select>
+
+                <label for="parent1Variant">Variant (Optional):</label>
+                <select id="parent1Variant">
+                    <option value="">Standard</option>
+                    <option value="Heraldic">Heraldic</option>
+                    <option value="Puck">Puck</option>
+                    <option value="Cavedweller">Cavedweller</option>
+                </select>
+            </div>
+
+            <!-- Parent 2 -->
+            <div class="parent-card">
+                <h2>Parent 2</h2>
+                <label for="parent2Geno">Genotype:</label>
+                <textarea id="parent2Geno" placeholder="EE aa prlprl nO + Geode"></textarea>
+
+                <label for="parent2Temp">Temperament:</label>
+                <select id="parent2Temp">
+                    <option value="">Select Temperament</option>
+                    <option value="Choleric">Choleric</option>
+                    <option value="Melancholic">Melancholic</option>
+                    <option value="Phlegmatic">Phlegmatic</option>
+                    <option value="Sanguine">Sanguine</option>
+                </select>
+
+                <label for="parent2Variant">Variant (Optional):</label>
+                <select id="parent2Variant">
+                    <option value="">Standard</option>
+                    <option value="Heraldic">Heraldic</option>
+                    <option value="Puck">Puck</option>
+                    <option value="Cavedweller">Cavedweller</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateFoals()">Generate Foal Possibilities</button>
+
+        <div class="results-container" id="resultsContainer">
+            <h2 style="color: #764ba2; margin-bottom: 20px; text-align: center;">Possible Foals</h2>
+            <div class="results-grid" id="resultsGrid"></div>
+        </div>
+    </div>
+
+    <script src="breeding-calculator.js"></script>
+</body>
+</html>
