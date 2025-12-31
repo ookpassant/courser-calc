@@ -859,18 +859,61 @@ function searchBreeding() {
 function extractTraitsFromQuery(query) {
     const traits = [];
     
-    // Coat colors
+    // Coat colors - check specific names first, then generic ones
+    // Legendary triple dilutions
+    if (query.includes('tyrian pearl champagne')) traits.push('Tyrian Pearl Champagne');
+    if (query.includes('phthalo pearl champagne')) traits.push('Phthalo Pearl Champagne');
+    if (query.includes('ochre pearl champagne')) traits.push('Ochre Pearl Champagne');
+    if (query.includes('tyrian pearl ether')) traits.push('Tyrian Pearl Ether');
+    if (query.includes('phthalo pearl ether')) traits.push('Phthalo Pearl Ether');
+    if (query.includes('ochre pearl ether')) traits.push('Ochre Pearl Ether');
+    if (query.includes('madder cream champagne')) traits.push('Madder Cream Champagne');
+    if (query.includes('woad cream champagne')) traits.push('Woad Cream Champagne');
+    if (query.includes('weld cream champagne')) traits.push('Weld Cream Champagne');
+    if (query.includes('madder cream ether')) traits.push('Madder Cream Ether');
+    if (query.includes('woad cream ether')) traits.push('Woad Cream Ether');
+    if (query.includes('weld cream ether')) traits.push('Weld Cream Ether');
+    if (query.includes('amber cream pearl champagne')) traits.push('Amber Cream Pearl Champagne');
+    if (query.includes('classic cream pearl champagne')) traits.push('Classic Cream Pearl Champagne');
+    if (query.includes('gold cream pearl champagne')) traits.push('Gold Cream Pearl Champagne');
+    if (query.includes('ombre cream pearl ether')) traits.push('Ombre Cream Pearl Ether');
+    if (query.includes('classic cream pearl ether')) traits.push('Classic Cream Pearl Ether');
+    if (query.includes('cold cream pearl ether')) traits.push('Cold Cream Pearl Ether');
+
+    // Epic double dilutions
+    if (query.includes('madder ether')) traits.push('Madder Ether');
+    if (query.includes('woad ether')) traits.push('Woad Ether');
+    if (query.includes('weld ether')) traits.push('Weld Ether');
+    if (query.includes('bay pearl ether')) traits.push('Bay Pearl Ether');
+    if (query.includes('black pearl ether')) traits.push('Black Pearl Ether');
+    if (query.includes('gold pearl ether')) traits.push('Gold Pearl Ether');
+    if (query.includes('madder buckskin')) traits.push('Madder Buckskin');
+    if (query.includes('woad smoky black')) traits.push('Woad Smoky Black');
+    if (query.includes('weld palomino')) traits.push('Weld Palomino');
+
+    // Common/Uncommon single dilutions
     if (query.includes('amber champagne') || query.includes('amber champ')) traits.push('Amber Champagne');
     if (query.includes('gold champagne') || query.includes('gold champ')) traits.push('Gold Champagne');
     if (query.includes('classic champagne')) traits.push('Classic Champagne');
+    if (query.includes('bay pearl')) traits.push('Bay Pearl');
+    if (query.includes('black pearl')) traits.push('Black Pearl');
+    if (query.includes('gold pearl')) traits.push('Gold Pearl');
+    if (query.includes('madder')) traits.push('Madder');
+    if (query.includes('woad')) traits.push('Woad');
+    if (query.includes('weld')) traits.push('Weld');
+    if (query.includes('buckskin')) traits.push('Buckskin');
+    if (query.includes('smoky black')) traits.push('Smoky Black');
+    if (query.includes('palomino')) traits.push('Palomino');
+    if (query.includes('perlino')) traits.push('Perlino');
+    if (query.includes('smoky cream')) traits.push('Smoky Cream');
+    if (query.includes('cremello')) traits.push('Cremello');
+
+    // Generic dilution genes (fallback)
     if (query.includes('cream') && !query.includes('pearl')) traits.push('Cream');
     if (query.includes('pearl') && !query.includes('cream')) traits.push('Pearl');
     if (query.includes('cream pearl') || query.includes('pearl cream')) traits.push('Cream Pearl');
     if (query.includes('tapestry')) traits.push('Tapestry');
     if (query.includes('ether')) traits.push('Ether');
-    if (query.includes('perlino')) traits.push('Perlino');
-    if (query.includes('smoky')) traits.push('Smoky');
-    if (query.includes('buckskin')) traits.push('Buckskin');
     
     // White markings
     // Leopard Complex patterns
@@ -945,8 +988,27 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
         const traitLower = trait.toLowerCase();
         
         // Check for specific genes that create this trait
-        if (traitLower.includes('amber champagne')) {
-            if (combinedGeno.includes('nch') && (combinedGeno.includes('ee aa') || combinedGeno.includes('ee_aa'))) score += 100;
+        // Special coat color names
+        if (traitLower.includes('woad')) {
+            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+        } else if (traitLower.includes('madder')) {
+            if (combinedGeno.includes('tp') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+        } else if (traitLower.includes('weld')) {
+            if (combinedGeno.includes('tp') && combinedGeno.includes('ee')) score += 100;
+        } else if (traitLower.includes('buckskin')) {
+            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+        } else if (traitLower.includes('smoky black')) {
+            if (combinedGeno.includes('cr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+        } else if (traitLower.includes('palomino')) {
+            if (combinedGeno.includes('cr') && combinedGeno.includes('ee')) score += 100;
+        } else if (traitLower.includes('perlino')) {
+            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
+        } else if (traitLower.includes('smoky cream')) {
+            if (combinedGeno.includes('crcr') && (combinedGeno.includes('e') && combinedGeno.includes('aa'))) score += 100;
+        } else if (traitLower.includes('cremello')) {
+            if (combinedGeno.includes('crcr') && combinedGeno.includes('ee')) score += 100;
+        } else if (traitLower.includes('amber champagne')) {
+            if (combinedGeno.includes('ch') && (combinedGeno.includes('e') && combinedGeno.includes('a'))) score += 100;
         } else if (traitLower.includes('fewspot')) {
             if (combinedGeno.includes('lplp') && combinedGeno.includes('patnpatn')) score += 100;
         } else if (traitLower.includes('snowcap')) {
