@@ -286,10 +286,14 @@ function getGeneAlleles(gene) {
     if (gene === 'sfsf') return ['sf', 'sf'];
     if (gene === 'fefe') return ['fe', 'fe'];
     
+    // Compound heterozygous genes
+    if (gene === 'Lusp') return ['Lu', 'sp'];
+    if (gene === 'PrOp') return ['Pr', 'Op'];
+
     // Complex patterns
     if (gene === 'patnpatn') return ['patn', 'patn'];
     if (gene === 'patn') return ['patn'];
-    
+
     return [gene];
 }
 
@@ -949,19 +953,92 @@ function generateChimeraPossibilities(foalGenotype, parent1Genotype, parent2Geno
         }
     });
 
-    // Get all available white markings
-    const whiteMarkings = new Set();
+    // Get all available modifiers
+    const modifiers = new Set();
+
+    // For recessive genes, check if both parents carry the allele
+    const recessiveGenes = ['f', 'sp', 'sf', 'fe']; // Flaxen, Sepulchered, Starfield, Filigree
+    const parent1Alleles = new Set();
+    const parent2Alleles = new Set();
+
+    p1.genes.forEach(gene => {
+        const alleles = getGeneAlleles(gene);
+        alleles.forEach(a => parent1Alleles.add(a));
+    });
+
+    p2.genes.forEach(gene => {
+        const alleles = getGeneAlleles(gene);
+        alleles.forEach(a => parent2Alleles.add(a));
+    });
+
     allParentGenes.forEach(gene => {
-        if (WHITE_MARKING_NAMES[gene]) {
-            whiteMarkings.add(WHITE_MARKING_NAMES[gene]);
+        if (MODIFIER_NAMES[gene]) {
+            const name = MODIFIER_NAMES[gene];
+
+            // Check if this is a recessive gene that needs both parents
+            if (gene.startsWith('n') && gene.length > 2) {
+                const allele = gene.substring(1);
+                if (recessiveGenes.includes(allele)) {
+                    // Only add if both parents have this allele
+                    if (parent1Alleles.has(allele) && parent2Alleles.has(allele)) {
+                        modifiers.add(name);
+                    }
+                    return;
+                }
+            } else if (recessiveGenes.some(r => gene === r + r)) {
+                // Homozygous recessive (like spsp, ff, etc.)
+                const allele = gene.substring(0, gene.length / 2);
+                if (parent1Alleles.has(allele) && parent2Alleles.has(allele)) {
+                    modifiers.add(name);
+                }
+                return;
+            }
+
+            // For compound heterozygous (like Lusp), extract what actually shows
+            if (gene === 'Lusp') {
+                modifiers.add('Illuminated'); // Lu is dominant
+                // Only add Sepulchered if both parents have sp allele
+                if (parent1Alleles.has('sp') && parent2Alleles.has('sp')) {
+                    modifiers.add('Sepulchered');
+                }
+                return;
+            }
+
+            if (gene === 'PrOp') {
+                modifiers.add('Prism'); // Pr is dominant
+                modifiers.add('Opal'); // Op is dominant
+                return;
+            }
+
+            // All other modifiers (dominant or already filtered)
+            modifiers.add(name);
         }
     });
 
-    // Get all available modifiers
-    const modifiers = new Set();
+    // Similar check for white markings with recessive genes
+    const whiteMarkings = new Set();
     allParentGenes.forEach(gene => {
-        if (MODIFIER_NAMES[gene]) {
-            modifiers.add(MODIFIER_NAMES[gene]);
+        if (WHITE_MARKING_NAMES[gene]) {
+            const name = WHITE_MARKING_NAMES[gene];
+
+            // Check Pattern gene (recessive)
+            if (gene === 'patn' || gene === 'patnpatn') {
+                if (parent1Alleles.has('patn') && parent2Alleles.has('patn')) {
+                    whiteMarkings.add(name);
+                }
+                return;
+            }
+
+            // Check Filigree (recessive)
+            if (gene === 'nfe' || gene === 'fefe') {
+                if (parent1Alleles.has('fe') && parent2Alleles.has('fe')) {
+                    whiteMarkings.add(name);
+                }
+                return;
+            }
+
+            // All other white markings (dominant)
+            whiteMarkings.add(name);
         }
     });
 
