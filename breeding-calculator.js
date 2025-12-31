@@ -1410,7 +1410,14 @@ function calculateMatchScore(parent1, parent2, targetTraits) {
             const p2HasSf = p2Geno.includes('sfsf') || p2Geno.includes('nsf');
             if (p1HasSf && p2HasSf) traitsScores.push(100);
         } else if (traitLower.includes('ether')) {
-            if (combinedGeno.includes('erer') || combinedGeno.includes('ner')) traitsScores.push(80);
+            // For homozygous ether (erer), BOTH parents must have ether genes
+            const p1HasEther = p1Geno.includes('erer') || p1Geno.includes('ner') || p1Geno.includes('er') || p1Geno.includes('cher');
+            const p2HasEther = p2Geno.includes('erer') || p2Geno.includes('ner') || p2Geno.includes('er') || p2Geno.includes('cher');
+            if (p1HasEther && p2HasEther) traitsScores.push(80);
+        } else if (traitLower.includes('champagne')) {
+            // For champagne, at least one parent needs Ch gene
+            const hasCh = combinedGeno.includes('nch') || combinedGeno.includes('ch') || combinedGeno.includes('cher');
+            if (hasCh) traitsScores.push(80);
         } else if (traitLower.includes('filigree')) {
             // Need fefe - BOTH parents must have fe
             const p1HasFe = p1Geno.includes('fefe') || p1Geno.includes('nfe');
