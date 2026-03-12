@@ -26,33 +26,6 @@ A simple web app to generate foal possibilities from two parent Dungeon Courser 
 - **One-click pairing** - click "Use This Pair" to automatically fill in parents
 - **Probability estimates** for each breeding match
 
-## How to Deploy to GitHub Pages
-
-### Step 1: Create a GitHub Repository
-
-1. Go to [GitHub](https://github.com) and sign in
-2. Click the "+" in the top right corner and select "New repository"
-3. Name it something like `dungeon-coursers-calculator`
-4. Make it Public
-5. Click "Create repository"
-
-### Step 2: Upload Files
-
-1. Click "uploading an existing file" on the repository page
-2. Upload these files:
-   - `index.html`
-   - `breeding-calculator.js`
-   - `sample_horses.csv` (optional example)
-3. Commit the files
-
-### Step 3: Enable GitHub Pages
-
-1. Go to your repository Settings
-2. Scroll down to "Pages" in the left sidebar
-3. Under "Source", select "main" branch
-4. Click "Save"
-5. Your site will be published at: `https://[your-username].github.io/dungeon-coursers-calculator/`
-
 ## Usage
 
 ### Basic Breeding
@@ -123,7 +96,5 @@ EE aa Tpprl nO LpLp patnpatn + Geode
 ## Credits
 
 Created for the [Dungeon Coursers](https://dungeon-coursers.com) HARPG community.
-
-## License
 
 Free to use and modify!
